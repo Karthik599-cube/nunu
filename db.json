@@ -1,0 +1,288 @@
+{
+  "profile": {
+    "name": "Karthik",
+    "email": "karthik@easydose.app",
+    "password": "mypassword"
+  },
+  "reminders": [
+    {
+      "id": 1,
+      "label": "Paracetamol",
+      "sub": "2 tablets · After breakfast",
+      "time": "08:00 AM",
+      "color": "#008b8b",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 2,
+      "label": "Dolo 550",
+      "sub": "1 tablet · With water",
+      "time": "12:00 PM",
+      "color": "#2563eb",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 3,
+      "label": "Cetirizin",
+      "sub": "1 tablet · Before food",
+      "time": "06:00 PM",
+      "color": "#008b8b",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 4,
+      "label": "Vitamin D3",
+      "sub": "1 capsule · Before sleep",
+      "time": "10:00 PM",
+      "color": "#2563eb",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 5,
+      "label": "Paracetamol",
+      "sub": "2 tablets",
+      "time": "08:00 AM",
+      "color": "#008b8b",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-22"
+    },
+    {
+      "id": 6,
+      "label": "Dolo 550",
+      "sub": "1 tablet",
+      "time": "12:00 PM",
+      "color": "#2563eb",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-22"
+    },
+    {
+      "id": 7,
+      "label": "Vitamin D3",
+      "sub": "1 capsule",
+      "time": "10:00 PM",
+      "color": "#2563eb",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-22"
+    },
+    {
+      "id": 8,
+      "label": "Paracetamol",
+      "sub": "2 tablets",
+      "time": "08:00 AM",
+      "color": "#008b8b",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-21"
+    },
+    {
+      "id": 9,
+      "label": "Cetirizin",
+      "sub": "1 tablet",
+      "time": "06:00 PM",
+      "color": "#008b8b",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-21"
+    },
+    {
+      "id": 10,
+      "label": "Dolo 550",
+      "sub": "1 tablet",
+      "time": "12:00 PM",
+      "color": "#2563eb",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-20"
+    },
+    {
+      "id": 11,
+      "label": "Vitamin D3",
+      "sub": "1 capsule",
+      "time": "10:00 PM",
+      "color": "#2563eb",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-19"
+    },
+    {
+      "id": 12,
+      "label": "Paracetamol",
+      "sub": "2 tablets",
+      "time": "08:00 AM",
+      "color": "#008b8b",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-18"
+    },
+    {
+      "id": 13,
+      "label": "Cetirizin",
+      "sub": "1 tablet",
+      "time": "06:00 PM",
+      "color": "#008b8b",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-17"
+    },
+    {
+      "id": 14,
+      "label": "Dolo 550",
+      "sub": "1 tablet",
+      "time": "12:00 PM",
+      "color": "#2563eb",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-16"
+    },
+    {
+      "id": 15,
+      "label": "Vitamin D3",
+      "sub": "1 capsule",
+      "time": "10:00 PM",
+      "color": "#2563eb",
+      "taken": true,
+      "emoji": "💊",
+      "date": "2026-06-15"
+    },
+    {
+      "id": 1782499303555,
+      "label": "Paracetamol",
+      "sub": "1 tablet",
+      "time": "09:00 AM",
+      "color": "#f59e0b",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 1782499303556,
+      "label": "Paracetamol",
+      "sub": "1 tablet",
+      "time": "09:00 AM",
+      "color": "#f43f5e",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 1782499796916,
+      "label": "Paroxetine",
+      "sub": "1 powder",
+      "time": "09:00 AM",
+      "color": "#14b8a6",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 1782499796917,
+      "label": "Paroxetine",
+      "sub": "1 powder",
+      "time": "09:00 AM",
+      "color": "#84cc16",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 1782499796918,
+      "label": "Paroxetine",
+      "sub": "1 powder",
+      "time": "09:00 AM",
+      "color": "#f97316",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 1782499896769,
+      "label": "Paracetamol",
+      "sub": "2 capsules",
+      "time": "09:00 AM",
+      "color": "#008b8b",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    },
+    {
+      "id": 1782499896771,
+      "label": "Paracetamol",
+      "sub": "2 capsules",
+      "time": "09:00 AM",
+      "color": "#2563eb",
+      "taken": false,
+      "emoji": "💊",
+      "date": "2026-06-23"
+    }
+  ],
+  "caretakers": [
+    {
+      "id": 1,
+      "name": "Priya Sharma",
+      "phone": "+91 98765 43210"
+    },
+    {
+      "id": 2,
+      "name": "Ravi Kumar",
+      "phone": "+91 87654 32109"
+    }
+  ],
+  "members": [
+    {
+      "id": 1,
+      "name": "Amma (Mom)"
+    },
+    {
+      "id": 2,
+      "name": "Appa (Dad)"
+    }
+  ],
+  "appointments": [
+    {
+      "id": 1,
+      "doctor": "Dr. Arun Raj",
+      "specialty": "Cardiologist",
+      "date": "2026-06-28",
+      "time": "10:00",
+      "notes": "Regular checkup"
+    },
+    {
+      "id": 2,
+      "doctor": "Dr. Meena V",
+      "specialty": "Neurologist",
+      "date": "2026-07-05",
+      "time": "14:00",
+      "notes": "Follow-up"
+    }
+  ],
+  "health": {
+    "waterIntake": 1450,
+    "sleepHours": 7.2,
+    "sleepQuality": 84,
+    "bedtime": "22:30",
+    "waketime": "06:00",
+    "bpSystolic": 118,
+    "bpDiastolic": 76,
+    "heartRate": 72,
+    "heartRateHistory": [
+      68,
+      70,
+      72,
+      74,
+      71,
+      73,
+      72
+    ]
+  }
+}
