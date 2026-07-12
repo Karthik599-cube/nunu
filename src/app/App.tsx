@@ -1733,6 +1733,52 @@ function AuthView({ showToast, t, setSession }: { showToast: (msg: string, type?
   const [tempGender, setTempGender] = useState("male");
   const [tempGoals, setTempGoals] = useState<string[]>(["meds", "water"]);
 
+  function handleGuestSignUp() {
+    const guestUser = {
+      id: "guest_user",
+      email: "guest@easydose.com",
+      user_metadata: {
+        name: authName || "Guest User"
+      }
+    };
+    const guestSession = {
+      user: guestUser,
+      access_token: "guest_token",
+      refresh_token: "guest_refresh_token"
+    };
+
+    // Save guest onboarding data locally
+    const userId = "guest_user";
+    const onboardingData = {
+      onboarded: true,
+      name: authName || "Guest User",
+      age: tempAge,
+      gender: tempGender,
+      reminders: [],
+      caretakers: [],
+      members: [],
+      appointments: [],
+      waterIntake: 0,
+      sleepHours: 0,
+      sleepQuality: 0,
+      bedtime: "",
+      waketime: "",
+      bpSystolic: 0,
+      bpDiastolic: 0,
+      heartRate: 0,
+      heartRateHistory: []
+    };
+    localStorage.setItem(`easydose_data_${userId}`, JSON.stringify(onboardingData));
+    localStorage.setItem(`pill_stocks_${userId}`, JSON.stringify([]));
+
+    // Save mock session locally to persist login
+    localStorage.setItem("easy_dose_mock_session", JSON.stringify(guestSession));
+
+    // Set active session in state
+    setSession(guestSession);
+    showToast("Logged in as Guest!", "success");
+  }
+
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
     if (!authEmail || !authPassword) {
@@ -1938,6 +1984,21 @@ function AuthView({ showToast, t, setSession }: { showToast: (msg: string, type?
               authMode === "login" ? "Sign In" : "Sign Up"
             )}
           </button>
+
+          {authMode === "signup" && (
+            <div className="flex flex-col items-center gap-2 mt-4 w-full">
+              <div className="flex items-center gap-2 w-full my-2">
+                <div className="h-px bg-slate-200 flex-1"></div>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">or</span>
+                <div className="h-px bg-slate-200 flex-1"></div>
+              </div>
+              <button type="button" onClick={handleGuestSignUp}
+                className="w-full py-3.5 rounded-2xl text-sm font-extrabold text-[#14B8A6] border-2 border-[#14B8A6]/20 bg-white hover:bg-teal-50/50 flex items-center justify-center gap-2 active:scale-95 transition-all duration-200">
+                <Sparkles className="w-4 h-4 text-[#14B8A6]" />
+                Sign Up as Guest
+              </button>
+            </div>
+          )}
         </form>
 
         {/* Footer Info */}
