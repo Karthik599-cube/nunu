@@ -6,7 +6,7 @@ import {
   ArrowLeft, Pencil, Trash2, Phone, Mail, Lock, UserPlus,
   Moon, Sun, Volume2, Globe, Info, Palette, Stethoscope,
   Eye, EyeOff, AlertCircle, CheckCircle2, CalendarDays, CalendarClock,
-  Droplets, Activity, Wind, Zap, Minus, LogOut,
+  Droplets, Activity, Wind, Zap, Minus, LogOut, Sparkles,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -622,6 +622,8 @@ const getWeekDays = (centerDateStr: string) => {
 
 const WEEK = getWeekDays(TODAY);
 
+let pendingSignupName = "";
+
 const REM_TYPES = [
   { key: "pill", emoji: "💊", label: "Pill", unit: "", hint: "" },
   { key: "study", emoji: "📚", label: "Study", unit: "hours", hint: "Duration (hours)" },
@@ -1149,9 +1151,270 @@ function NunuLogo({ className = "h-10", variant = "colored" }: { className?: str
   );
 }
 
+function TimeClockPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const defaultTime = value || "09:00";
+  const [hhStr, mmStr] = defaultTime.split(":");
+  let hhVal = parseInt(hhStr || "9");
+  const mmVal = parseInt(mmStr || "00");
+
+  let initialPeriod: "AM" | "PM" = "AM";
+  let displayHour = hhVal;
+  if (hhVal >= 12) {
+    initialPeriod = "PM";
+    if (hhVal > 12) displayHour = hhVal - 12;
+  }
+  if (hhVal === 0) {
+    displayHour = 12;
+  }
+
+  const [activeTab, setActiveTab] = useState<"hour" | "minute">("hour");
+  const [period, setPeriod] = useState<"AM" | "PM">(initialPeriod);
+
+  useEffect(() => {
+    const [hS, mS] = (value || "09:00").split(":");
+    let hV = parseInt(hS || "9");
+    let p: "AM" | "PM" = "AM";
+    let dH = hV;
+    if (hV >= 12) {
+      p = "PM";
+      if (hV > 12) dH = hV - 12;
+    }
+    if (hV === 0) {
+      dH = 12;
+    }
+    setPeriod(p);
+  }, [value]);
+
+  const updateTime = (newHour: number, newMin: number, newPeriod: "AM" | "PM") => {
+    let finalHour = newHour;
+    if (newPeriod === "PM" && newHour < 12) {
+      finalHour += 12;
+    }
+    if (newPeriod === "AM" && newHour === 12) {
+      finalHour = 0;
+    }
+    const finalHourStr = String(finalHour).padStart(2, "0");
+    const finalMinStr = String(newMin).padStart(2, "0");
+    onChange(`${finalHourStr}:${finalMinStr}`);
+  };
+
+  const handleHourSelect = (h: number) => {
+    updateTime(h, mmVal, period);
+    setActiveTab("minute");
+  };
+
+  const handleMinSelect = (m: number) => {
+    updateTime(displayHour, m, period);
+  };
+
+  const handleHourAdjust = (amount: number) => {
+    let nextH = displayHour + amount;
+    if (nextH > 12) nextH = 1;
+    if (nextH < 1) nextH = 12;
+    updateTime(nextH, mmVal, period);
+  };
+
+  const handleMinAdjust = (amount: number) => {
+    let nextM = mmVal + amount;
+    if (nextM >= 60) nextM = 0;
+    if (nextM < 0) nextM = 59;
+    updateTime(displayHour, nextM, period);
+  };
+
+  const handlePeriodChange = (p: "AM" | "PM") => {
+    setPeriod(p);
+    updateTime(displayHour, mmVal, p);
+  };
+
+  const handleClockClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x0 = rect.left + rect.width / 2;
+    const y0 = rect.top + rect.height / 2;
+    const dx = e.clientX - x0;
+    const dy = e.clientY - y0;
+
+    let angle = Math.atan2(dx, -dy);
+    if (angle < 0) {
+      angle += 2 * Math.PI;
+    }
+
+    if (activeTab === "hour") {
+      let h = Math.round((angle / (2 * Math.PI)) * 12);
+      if (h === 0) h = 12;
+      handleHourSelect(h);
+    } else {
+      let m = Math.round((angle / (2 * Math.PI)) * 60) % 60;
+      handleMinSelect(m);
+    }
+  };
+
+  const radius = 68; // Radius for circle positioning (px)
+  
+  // Calculate hand rotation angle in degrees
+  const handAngle = activeTab === "hour" 
+    ? displayHour * 30 
+    : mmVal * 6;
+
+  return (
+    <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl p-4 border border-slate-100 dark:border-slate-850 flex flex-col items-center select-none w-full">
+      {/* Time Display with Micro Adjustments */}
+      <div className="flex items-center gap-4 mb-4 bg-white dark:bg-slate-950 px-5 py-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-850">
+        {/* Hour block with adjusters */}
+        <div className="flex flex-col items-center gap-0.5">
+          <button type="button" onClick={() => handleHourAdjust(1)} className="text-slate-400 hover:text-[#14B8A6] font-bold text-xs p-1 select-none">▲</button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("hour")}
+            className={`text-2xl font-extrabold px-3 py-1 rounded-xl transition-all ${
+              activeTab === "hour" ? "bg-[#EFF6FF] dark:bg-[#EFF6FF]/10 text-[#14B8A6]" : "text-slate-700 dark:text-slate-350"
+            }`}
+          >
+            {String(displayHour).padStart(2, "0")}
+          </button>
+          <button type="button" onClick={() => handleHourAdjust(-1)} className="text-slate-400 hover:text-[#14B8A6] font-bold text-xs p-1 select-none">▼</button>
+        </div>
+
+        <span className="text-xl font-bold text-slate-300">:</span>
+
+        {/* Minute block with adjusters */}
+        <div className="flex flex-col items-center gap-0.5">
+          <button type="button" onClick={() => handleMinAdjust(1)} className="text-slate-400 hover:text-[#14B8A6] font-bold text-xs p-1 select-none">▲</button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("minute")}
+            className={`text-2xl font-extrabold px-3 py-1 rounded-xl transition-all ${
+              activeTab === "minute" ? "bg-[#EFF6FF] dark:bg-[#EFF6FF]/10 text-[#14B8A6]" : "text-slate-700 dark:text-slate-350"
+            }`}
+          >
+            {String(mmVal).padStart(2, "0")}
+          </button>
+          <button type="button" onClick={() => handleMinAdjust(-1)} className="text-slate-400 hover:text-[#14B8A6] font-bold text-xs p-1 select-none">▼</button>
+        </div>
+
+        {/* AM/PM toggle */}
+        <div className="flex flex-col ml-1 justify-center">
+          <button
+            type="button"
+            onClick={() => handlePeriodChange("AM")}
+            className={`text-[10px] font-extrabold px-2.5 py-1 rounded transition-all ${
+              period === "AM" ? "bg-teal-500 text-white shadow-sm" : "text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            AM
+          </button>
+          <button
+            type="button"
+            onClick={() => handlePeriodChange("PM")}
+            className={`text-[10px] font-extrabold px-2.5 py-1 rounded transition-all mt-1 ${
+              period === "PM" ? "bg-teal-500 text-white shadow-sm" : "text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            PM
+          </button>
+        </div>
+      </div>
+
+      {/* Clock Face Container */}
+      <div 
+        onClick={handleClockClick}
+        className="relative w-[180px] h-[180px] rounded-full bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-inner flex items-center justify-center mb-2 cursor-pointer"
+      >
+        {/* Center Pin */}
+        <div className="absolute w-2.5 h-2.5 rounded-full bg-[#14B8A6] z-20 shadow-md border border-white" />
+        
+        {/* Clock Hand */}
+        <div 
+          className="absolute z-10 w-[2px] bg-[#14B8A6] origin-bottom transition-all duration-300 ease-out rounded-full pointer-events-none"
+          style={{
+            height: `${radius - 12}px`,
+            bottom: "50%",
+            transform: `translateX(-50%) rotate(${handAngle}deg)`,
+            left: "50%"
+          }}
+        />
+
+        {/* Circular Numbers Layout */}
+        {activeTab === "hour" ? (
+          Array.from({ length: 12 }, (_, i) => i + 1).map(h => {
+            const angle = (h * 30 * Math.PI) / 180;
+            const x = Math.sin(angle) * radius;
+            const y = -Math.cos(angle) * radius;
+            const isSelected = displayHour === h;
+
+            return (
+              <button
+                key={h}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleHourSelect(h);
+                }}
+                style={{
+                  left: `calc(50% + ${x}px)`,
+                  top: `calc(50% + ${y}px)`,
+                }}
+                className={`absolute w-7 h-7 -translate-x-1/2 -translate-y-1/2 rounded-full font-black text-xs transition-all z-20 flex items-center justify-center ${
+                  isSelected 
+                    ? "bg-[#14B8A6] text-white shadow scale-110" 
+                    : "text-slate-650 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900"
+                }`}
+              >
+                {h}
+              </button>
+            );
+          })
+        ) : (
+          [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((m, idx) => {
+            const hRepresentation = idx === 0 ? 12 : idx;
+            const angle = (hRepresentation * 30 * Math.PI) / 180;
+            const x = Math.sin(angle) * radius;
+            const y = -Math.cos(angle) * radius;
+            const isSelected = Math.round(mmVal / 5) * 5 === m;
+
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMinSelect(m);
+                }}
+                style={{
+                  left: `calc(50% + ${x}px)`,
+                  top: `calc(50% + ${y}px)`,
+                }}
+                className={`absolute w-7 h-7 -translate-x-1/2 -translate-y-1/2 rounded-full font-black text-[10px] transition-all z-20 flex items-center justify-center ${
+                  isSelected 
+                    ? "bg-[#14B8A6] text-white shadow scale-110" 
+                    : "text-slate-650 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900"
+                }`}
+              >
+                {String(m).padStart(2, "0")}
+              </button>
+            );
+          })
+        )}
+      </div>
+      
+      <p className="text-[9px] text-slate-450 font-semibold mt-1">
+        Tap anywhere on the dial to select exact times
+      </p>
+    </div>
+  );
+}
+
 function SInput({ label, value, onChange, placeholder, type = "text", min, hasError, shake }: {
   label?: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; min?: string; hasError?: boolean; shake?: boolean;
 }) {
+  if (type === "time") {
+    return (
+      <div className={shake ? "animate-shake" : ""}>
+        {label && <p className={`text-xs font-bold mb-1.5 ${hasError ? "text-red-500" : "text-slate-500"}`}>{label}</p>}
+        <TimeClockPicker value={value} onChange={onChange} />
+      </div>
+    );
+  }
+
   return (
     <div className={shake ? "animate-shake" : ""}>
       {label && <p className={`text-xs font-bold mb-1 ${hasError ? "text-red-500" : "text-slate-500"}`}>{label}</p>}
@@ -1163,6 +1426,53 @@ function SInput({ label, value, onChange, placeholder, type = "text", min, hasEr
           color: hasError ? "#991b1b" : "#1e293b",
           background: hasError ? "#fef2f2" : "#EFF6FF"
         }} />
+    </div>
+  );
+}
+
+function TimeInputs({ count, slots, data, wUpdate, activeTimeSlot, setActiveTimeSlot }: { 
+  count: number; 
+  slots: string[]; 
+  data: Record<string, string>; 
+  wUpdate: (patch: Record<string, any>) => void;
+  activeTimeSlot: number;
+  setActiveTimeSlot: (v: number) => void;
+}) {
+  return (
+    <div className="space-y-3 mt-2">
+      {count > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+          {Array.from({ length: count }).map((_, i) => {
+            const val = data[`time_${i}`] || "09:00";
+            const isSelected = activeTimeSlot === i;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setActiveTimeSlot(i)}
+                className={`px-3 py-2 rounded-xl text-xs font-extrabold border transition-all flex-shrink-0 ${
+                  isSelected
+                    ? "bg-teal-500 text-white border-teal-500"
+                    : "bg-white text-slate-650 border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800"
+                }`}
+              >
+                {slots[i] || `Slot ${i + 1}`}: {fmtTime(val)}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <div>
+        {count > 1 && (
+          <p className="text-xs font-bold text-slate-400 mb-2">
+            Adjusting: <span className="text-[#14B8A6]">{slots[activeTimeSlot] || `Slot ${activeTimeSlot + 1}`}</span>
+          </p>
+        )}
+        <TimeClockPicker
+          value={data[`time_${activeTimeSlot}`] || "09:00"}
+          onChange={val => wUpdate({ [`time_${activeTimeSlot}`]: val })}
+        />
+      </div>
     </div>
   );
 }
@@ -1246,6 +1556,68 @@ function fmtTime(val: string): string {
   const [h, m] = val.split(":").map(Number);
   const p = h >= 12 ? "PM" : "AM", h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
   return `${h12.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")} ${p}`;
+}
+
+function getEmojiChar(emojiOrType: string): string {
+  if (!emojiOrType) return "💊";
+  if (emojiOrType.length <= 2) return emojiOrType; // already an emoji char
+  const t = emojiOrType.toLowerCase();
+  if (t === "drops") return "💧";
+  if (t === "syrup") return "🧪";
+  if (t === "injection") return "💉";
+  if (t === "inhaler") return "💨";
+  if (t === "powder") return "🧂";
+  if (t === "tablet") return "💊";
+  if (t === "capsule") return "💊";
+  return "💊";
+}
+
+function renderWizardIcon(emo: string) {
+  if (!emo) return null;
+  const nameMap: Record<string, string> = {
+    "💊": "pill",
+    "🧪": "syrup",
+    "💧": "drops",
+    "💉": "injection",
+    "💨": "inhaler",
+    "🧂": "powder",
+  };
+  const iconName = nameMap[emo];
+  if (iconName) {
+    return (
+      <div className="flex justify-center mb-3">
+        <CustomIcon name={iconName} className="w-14 h-14" />
+      </div>
+    );
+  }
+  return <div className="text-4xl mb-2 text-center">{emo}</div>;
+}
+
+async function validateEmailDomain(email: string): Promise<{ valid: boolean; reason?: string }> {
+  const domain = email.split("@")[1]?.toLowerCase().trim();
+  if (!domain) return { valid: false, reason: "Invalid email format." };
+
+  // Block common disposable email domains
+  const disposableDomains = [
+    "mailinator.com", "yopmail.com", "10minutemail.com", "tempmail.com", 
+    "dispostable.com", "guerrillamail.com", "sharklasers.com", "trashmail.com"
+  ];
+  if (disposableDomains.includes(domain)) {
+    return { valid: false, reason: "Temporary or disposable emails are not allowed." };
+  }
+
+  try {
+    // Query Google DNS over HTTPS to verify the domain has MX (Mail Exchange) records
+    const res = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+    const data = await res.json();
+    if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
+      return { valid: true };
+    }
+    return { valid: false, reason: `The domain "${domain}" is not configured to receive emails.` };
+  } catch (err) {
+    // If the network/DNS check fails, default to valid so we don't block users due to connection issues
+    return { valid: true };
+  }
 }
 
 function parseTimeToMinutes(timeStr: string): number {
@@ -1367,6 +1739,11 @@ function AuthView({ showToast, t, setSession }: { showToast: (msg: string, type?
       showToast("Please fill in all fields", "error");
       return;
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(authEmail.trim())) {
+      showToast("Please enter a valid email address", "error");
+      return;
+    }
     if (authPassword.length < 6) {
       showToast("Password must be at least 6 characters long", "error");
       return;
@@ -1378,6 +1755,15 @@ function AuthView({ showToast, t, setSession }: { showToast: (msg: string, type?
 
     setLoading(true);
     try {
+      if (authMode === "signup") {
+        const domainCheck = await validateEmailDomain(authEmail);
+        if (!domainCheck.valid) {
+          showToast(domainCheck.reason || "Invalid email domain.", "error");
+          setLoading(false);
+          return;
+        }
+      }
+
       if (authMode === "login") {
         const { error } = await supabase.auth.signInWithPassword({
           email: authEmail,
@@ -1390,6 +1776,20 @@ function AuthView({ showToast, t, setSession }: { showToast: (msg: string, type?
           showToast("Successfully logged in!", "success");
         }
       } else {
+        // Check if email already exists in public profile table
+        const { data: existingUser } = await supabase
+          .from("profile")
+          .select("id")
+          .eq("email", authEmail.trim().toLowerCase())
+          .maybeSingle();
+
+        if (existingUser) {
+          showToast("This email is already registered. Please log in instead.", "error");
+          setLoading(false);
+          return;
+        }
+
+        pendingSignupName = authName;
         const { data, error } = await supabase.auth.signUp({
           email: authEmail,
           password: authPassword,
@@ -1427,23 +1827,14 @@ function AuthView({ showToast, t, setSession }: { showToast: (msg: string, type?
             localStorage.setItem(`easydose_data_${userId}`, JSON.stringify(onboardingData));
             localStorage.setItem(`pill_stocks_${userId}`, JSON.stringify([]));
 
-            supabase.from("profile").update({ name: authName }).eq("id", userId).then(({ error }) => {
-              if (error) console.error("Error updating profile name:", error);
+            supabase.from("profile").upsert({ id: userId, name: authName, email: authEmail, password: "" }).then(({ error }) => {
+              if (error) console.error("Error upserting profile:", error);
             });
           }
 
           if (data.user && data.session === null) {
-            // Bypass email verification by setting a mock session
-            const mockSession = {
-              user: {
-                id: data.user.id,
-                email: authEmail,
-                user_metadata: { name: authName }
-              }
-            };
-            localStorage.setItem("easy_dose_mock_session", JSON.stringify(mockSession));
-            setSession(mockSession);
-            showToast("Registration successful!", "success");
+            showToast("Registration successful! Please check your email for the confirmation link to activate your account.", "success");
+            setAuthMode("login");
           } else {
             showToast("Registration successful!", "success");
           }
@@ -1802,6 +2193,7 @@ export default function App() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [onboarded, setOnboarded] = useState<boolean>(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [activeTimeSlot, setActiveTimeSlot] = useState(0);
 
   /* ── settings ────────────────────────────────────────────── */
   const [settings, setSettings] = useState({
@@ -1832,8 +2224,21 @@ export default function App() {
   const [view, setView] = useState<AppView>("main");
   const [toast, setToast] = useState<{ message: string, type: 'error' | 'success' } | null>(null);
 
-  const showToast = (message: string, type: 'error' | 'success' = 'error') => {
-    setToast({ message, type });
+  const showToast = (message: any, type: 'error' | 'success' = 'error') => {
+    let msg = "";
+    if (!message) {
+      msg = type === "error" ? "An unexpected error occurred." : "Success!";
+    } else if (typeof message === "object") {
+      msg = message.message || message.error_description || JSON.stringify(message);
+    } else {
+      msg = String(message).trim();
+    }
+
+    if (msg === "{}" || msg === "") {
+      msg = "Failed to send verification email. Please verify your custom SMTP configuration in your Supabase dashboard.";
+    }
+
+    setToast({ message: msg, type });
   };
 
   useEffect(() => {
@@ -1848,22 +2253,7 @@ export default function App() {
 
   const calendarActiveRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (view === "main" && activeNav === "today") {
-      const timer = setTimeout(() => {
-        const activeBtn = calendarActiveRef.current;
-        if (activeBtn) {
-          const flexContainer = activeBtn.parentElement;
-          const scrollContainer = flexContainer?.parentElement;
-          if (scrollContainer) {
-            const left = activeBtn.offsetLeft - scrollContainer.offsetWidth / 2 + activeBtn.offsetWidth / 2;
-            scrollContainer.scrollTo({ left, behavior: "auto" });
-          }
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [activeDay, view, activeNav]);
+
 
   const [calDay, setCalDay] = useState<number | null>(null);
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
@@ -1956,8 +2346,38 @@ export default function App() {
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState("");
   const [aiMsgs, setAiMsgs] = useState([
-    { role: "ai", text: "Hi Karthik! 👋 I'm your Nunu AI. Ask me anything about your medications, dosage, or side effects." },
+    { role: "ai", text: "Hi! 👋 I'm your Nunu AI. Ask me anything about your medications, dosage, or side effects." },
   ]);
+
+  useEffect(() => {
+    if (profile.name) {
+      setAiMsgs(prev => {
+        if (prev.length === 1 && prev[0].role === "ai" && (prev[0].text.startsWith("Hi!") || prev[0].text.includes("Karthik"))) {
+          return [
+            { role: "ai", text: `Hi ${profile.name}! 👋 I'm your Nunu AI. Ask me anything about your medications, dosage, or side effects.` }
+          ];
+        }
+        return prev;
+      });
+    }
+  }, [profile.name]);
+
+  useEffect(() => {
+    if (view === "main" && activeNav === "today") {
+      const timer = setTimeout(() => {
+        const activeBtn = calendarActiveRef.current;
+        if (activeBtn) {
+          const flexContainer = activeBtn.parentElement;
+          const scrollContainer = flexContainer?.parentElement;
+          if (scrollContainer) {
+            const left = activeBtn.offsetLeft - scrollContainer.offsetWidth / 2 + activeBtn.offsetWidth / 2;
+            scrollContainer.scrollTo({ left, behavior: "auto" });
+          }
+        }
+      }, 350); // Give enough time for loading re-renders to settle
+      return () => clearTimeout(timer);
+    }
+  }, [activeDay, view, activeNav, reminders]);
 
   /* ── health trackers state ───────────────────────────────── */
   const [waterIntake, setWaterIntake] = useState(1450); // in ml
@@ -2015,35 +2435,68 @@ export default function App() {
   async function handleLogout() {
     try {
       await supabase.auth.signOut();
-      localStorage.removeItem("easy_dose_mock_session");
-      setSession(null);
-      setView("main");
+    } catch (err: any) {
+      console.error("Supabase signOut error:", err);
+    }
+    
+    // Always clear local session and states regardless of server success
+    localStorage.removeItem("easy_dose_mock_session");
+    setSession(null);
+    setView("main");
 
-      // Clear React states completely to avoid memory leaking to next logged in user
+    // Clear React states completely to avoid memory leaking to next logged in user
+    setIsLoaded(false);
+    setProfile({ name: "Karthik", email: "karthik@easydose.app", password: "mypassword", age: 28, gender: "male" });
+    setReminders([]);
+    setCustomPillNames([]);
+    setCaretakers([]);
+    setMembers([]);
+    setAppointments([]);
+    setPillStocks([]);
+    setWaterIntake(1500);
+    setSleepHours(7.0);
+    setSleepQuality(80);
+    setBedtime("");
+    setWaketime("");
+    setBpSystolic(0);
+    setBpDiastolic(0);
+    setHeartRate(0);
+    setHeartRateHistory([]);
+
+    showToast("Logged out successfully", "success");
+  }
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      // If no active session, clear states
+      setIsLoaded(false);
+      setProfile({ name: "Karthik", email: "karthik@easydose.app", password: "mypassword", age: 28, gender: "male" });
       setReminders([]);
-      setCustomPillNames([]);
       setCaretakers([]);
       setMembers([]);
       setAppointments([]);
       setPillStocks([]);
-      setWaterIntake(0);
-      setSleepHours(0);
-      setSleepQuality(0);
-      setBedtime("");
-      setWaketime("");
-      setBpSystolic(0);
-      setBpDiastolic(0);
-      setHeartRate(0);
-      setHeartRateHistory([]);
-
-      showToast("Logged out successfully", "success");
-    } catch (err: any) {
-      showToast(err.message || "Error logging out", "error");
+      return;
     }
-  }
 
-  useEffect(() => {
-    if (!session?.user?.id) return;
+    // Immediately clear previous user's data states to prevent leakage before new data loads
+    setIsLoaded(false);
+    setProfile({ name: "Karthik", email: "karthik@easydose.app", password: "mypassword", age: 28, gender: "male" });
+    setReminders([]);
+    setCaretakers([]);
+    setMembers([]);
+    setAppointments([]);
+    setPillStocks([]);
+    setWaterIntake(0);
+    setSleepHours(0);
+    setSleepQuality(0);
+    setBedtime("");
+    setWaketime("");
+    setBpSystolic(0);
+    setBpDiastolic(0);
+    setHeartRate(0);
+    setHeartRateHistory([]);
+
     async function loadData() {
       try {
         // 1. Profile Load/Create
@@ -2053,9 +2506,10 @@ export default function App() {
           if (profileRes.data) {
             userProfile = profileRes.data;
           } else {
+            const signupName = pendingSignupName || session.user.user_metadata?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "User";
             const newProfile = {
               id: session.user.id,
-              name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || "User",
+              name: signupName,
               email: session.user.email || "",
               password: ""
             };
@@ -2068,8 +2522,9 @@ export default function App() {
           }
         } catch (profileErr) {
           console.error("Profile load error, fallback to mock:", profileErr);
+          const signupName = pendingSignupName || session.user.user_metadata?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "User";
           userProfile = {
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || "User",
+            name: signupName,
             email: session.user.email || "",
             password: ""
           };
@@ -2142,8 +2597,13 @@ export default function App() {
             age: localAge,
             gender: localGender
           };
+          console.log("[loadData Debug] User ID:", session.user.id);
+          console.log("[loadData Debug] User Profile from DB:", userProfile);
+          console.log("[loadData Debug] Local Name loaded:", localName);
+          console.log("[loadData Debug] Final Merged Profile:", mergedProfile);
           setProfile(mergedProfile);
           setEditP({ ...mergedProfile, showPass: false });
+          pendingSignupName = "";
         }
 
         // Load pill stocks for the specific user
@@ -2170,8 +2630,8 @@ export default function App() {
           setPillStocks([]);
         }
 
-        // Load custom typed pill names for search suggestions
-        const savedCustomPills = localStorage.getItem(`custom_pills_${session.user.id}`);
+        // Load custom typed pill names for search suggestions (shared globally)
+        const savedCustomPills = localStorage.getItem("custom_pills_shared");
         if (savedCustomPills) {
           try {
             setCustomPillNames(JSON.parse(savedCustomPills));
@@ -2615,9 +3075,11 @@ export default function App() {
   }
 
   function openMemberWizard(memberName: string) {
+    setActiveTimeSlot(0);
     setWizard({ kind: "memberReminder", step: 0, forMember: memberName, data: {} });
   }
   function openMainPillWizard() {
+    setActiveTimeSlot(0);
     setWizard({ kind: "mainPill", step: 0, data: {} });
   }
 
@@ -2814,6 +3276,7 @@ export default function App() {
       return;
     }
     setWizardError(false);
+    setActiveTimeSlot(0);
 
     const isMedPill = (wizard.kind === "mainPill" && wizard.data.choice === "medicine") ||
       (wizard.kind === "memberReminder" && wizard.data.reminderType === "pill");
@@ -2836,14 +3299,25 @@ export default function App() {
       (wizard.kind === "memberReminder" && wizard.data.reminderType === "pill");
     const isStocked = isMedPill && isPillAlreadyStocked(wizard.data.pillName, pillStocks);
 
+    let targetStep = wizard.step - 1;
     if (isStocked && wizard.step === 3) {
-      setWizard(w => w ? { ...w, step: 1 } : null);
-    } else {
-      setWizard(w => w ? { ...w, step: w.step - 1 } : null);
+      targetStep = 1;
     }
+
+    setWizard(w => {
+      if (!w) return null;
+      const nextData = { ...w.data };
+      if (targetStep === 0) {
+        delete nextData.choice;
+        delete nextData.reminderType;
+      }
+      setActiveTimeSlot(0);
+      return { ...w, step: targetStep, data: nextData };
+    });
   }
   function wSkip() {
     setWizardError(false);
+    setActiveTimeSlot(0);
     if (!wizard) return;
     const isMedPill = (wizard.kind === "mainPill" && wizard.data.choice === "medicine") ||
       (wizard.kind === "memberReminder" && wizard.data.reminderType === "pill");
@@ -2889,7 +3363,7 @@ export default function App() {
       setCustomPillNames(prev => {
         if (!prev.includes(trimmed)) {
           const next = [...prev, trimmed];
-          localStorage.setItem(`custom_pills_${session?.user?.id}`, JSON.stringify(next));
+          localStorage.setItem("custom_pills_shared", JSON.stringify(next));
           return next;
         }
         return prev;
@@ -2960,6 +3434,16 @@ export default function App() {
             } else {
               doseUnit = "drop";
             }
+          } else if (d.pillType === "Powder") {
+            const ctL = countText.toLowerCase();
+            const hasUnit = ctL.includes("g") || ctL.includes("mg") || ctL.includes("sachet") || ctL.includes("packet") || ctL.includes("spoon");
+            if (hasUnit) {
+              doseUnit = "";
+            } else {
+              doseUnit = parseFloat(countText) > 1 ? "sachets" : "sachet";
+            }
+          } else if (d.pillType === "Inhaler") {
+            doseUnit = parseFloat(countText) > 1 ? "puffs" : "puff";
           } else if (["tablet", "capsule"].includes(doseUnit)) {
             if (parseFloat(countText) > 1) {
               doseUnit += "s";
@@ -2976,7 +3460,7 @@ export default function App() {
             time: fmtTime(tv),
             color: COLORS[(reminders.length + dateIdx * 100 + i) % COLORS.length],
             taken: false,
-            emoji: d.pillType === "Syrup" ? "🧪" : d.pillType === "Injection" ? "💉" : "💊",
+            emoji: d.pillType || "pill",
             forMember: wizard.forMember,
             date: dateVal,
             alarmMode: d.alarmMode === true || d.alarmMode === "true",
@@ -4061,9 +4545,15 @@ export default function App() {
             })}
           </div>
 
+          {/* Session Debug Label */}
+          <div className="text-[10px] text-slate-400 text-center font-bold bg-slate-100 p-2 rounded-2xl">
+            Account: {session?.user?.email} <br />
+            UID: {session?.user?.id}
+          </div>
+
           {/* Logout Button */}
           <button onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2.5 p-4 mt-6 rounded-3xl bg-rose-50 border border-rose-100/50 hover:bg-rose-100 active:scale-[.98] transition-all text-rose-600 font-extrabold text-sm shadow-sm">
+            className="w-full flex items-center justify-center gap-2.5 p-4 mt-2 rounded-3xl bg-rose-50 border border-rose-100/50 hover:bg-rose-100 active:scale-[.98] transition-all text-rose-600 font-extrabold text-sm shadow-sm">
             <LogOut className="w-5 h-5" />
             Logout Account
           </button>
@@ -4373,13 +4863,13 @@ export default function App() {
     return (
       <div className="flex-1 overflow-y-auto bg-slate-50 px-4 py-4 space-y-4" style={{ scrollbarWidth: "none" }}>
         {/* Dashboard / Summary Card */}
-        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-3xl p-4 shadow-md flex items-center justify-between">
+        <div className="bg-gradient-to-br from-teal-500 to-teal-650 text-white rounded-3xl p-4 shadow-md flex items-center justify-between">
           <div>
-            <p className="text-xs text-indigo-100 font-bold uppercase tracking-wider">Stock Summary</p>
+            <p className="text-xs text-teal-100 font-bold uppercase tracking-wider">Stock Summary</p>
             <h4 className="text-xl font-black mt-1">{pillStocks.length} Medications</h4>
             {lowStockCount > 0 ? (
               <p className="text-xs text-rose-200 font-semibold mt-1 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5 fill-rose-500 text-indigo-600" /> {lowStockCount} items running low!
+                <AlertCircle className="w-3.5 h-3.5 fill-rose-500 text-teal-600" /> {lowStockCount} items running low!
               </p>
             ) : (
               <p className="text-xs text-emerald-200 font-semibold mt-1">All items well stocked! ✨</p>
@@ -4398,7 +4888,7 @@ export default function App() {
               placeholder="Search stock..."
               value={stockSearchQuery}
               onChange={e => setStockSearchQuery(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-indigo-400"
+              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-semibold focus:outline-none focus:border-teal-400"
             />
           </div>
           <button
@@ -4407,7 +4897,7 @@ export default function App() {
               setEditingStockName(null);
               setShowAddStock(true);
             }}
-            className="h-10 px-4 rounded-2xl bg-indigo-600 text-white text-xs font-extrabold flex items-center gap-1 active:scale-95 transition-all shadow-sm"
+            className="h-10 px-4 rounded-2xl bg-teal-500 text-white text-xs font-extrabold flex items-center gap-1 active:scale-95 transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" /> Add Stock
           </button>
@@ -4496,7 +4986,7 @@ export default function App() {
             <select
               value={newStockPill.type}
               onChange={e => setNewStockPill(p => ({ ...p, type: e.target.value }))}
-              className="w-full px-4 py-3 bg-slate-50 rounded-2xl text-sm font-extrabold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full px-4 py-3 bg-slate-50 rounded-2xl text-sm font-extrabold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-400"
             >
               {PILL_TYPES.map(opt => (
                 <option key={opt} value={opt}>{opt}</option>
@@ -4522,7 +5012,7 @@ export default function App() {
           <button
             onClick={addOrUpdateStock}
             className="w-full py-3.5 rounded-2xl text-sm font-extrabold text-white mt-4 transition-transform active:scale-98"
-            style={{ background: "linear-gradient(135deg,#6366f1,#4f46e5)" }}
+            style={{ background: "linear-gradient(135deg,#14b8a6,#0d9488)" }}
           >
             {editingStockName ? "Save Changes" : "Add Medication"}
           </button>
@@ -4530,6 +5020,8 @@ export default function App() {
       </div>
     );
   }
+
+
 
   /* ═══════════════════════════════════════════════════════════
      WIZARD SHEET
@@ -4542,24 +5034,6 @@ export default function App() {
     const last = isLastStep(wizard, pillStocks);
 
     let emoji = "💊", title = "", content: React.ReactNode = null;
-
-    /* ── helper: time inputs for N slots ── */
-    function TimeInputs({ count, slots }: { count: number; slots: string[] }) {
-      return (
-        <div className="space-y-3 mt-2">
-          {Array.from({ length: count }).map((_, i) => (
-            <div key={i}>
-              <p className="text-xs font-bold text-slate-500 mb-1">{slots[i] || `Reminder ${i + 1}`}</p>
-              <input type="time"
-                className="w-full px-4 py-3 rounded-2xl text-sm font-semibold outline-none"
-                style={{ background: "#f8fafc", border: "1.5px solid #e2e8f0" }}
-                value={data[`time_${i}`] || ""}
-                onChange={e => wUpdate({ [`time_${i}`]: e.target.value })} />
-            </div>
-          ))}
-        </div>
-      );
-    }
 
     /* ── MAIN PILL wizard ── */
     if (kind === "mainPill") {
@@ -4663,6 +5137,8 @@ export default function App() {
             const isSyrup = data.pillType === "Syrup";
             const isInj = data.pillType === "Injection";
             const isDrops = data.pillType === "Drops";
+            const isPowder = data.pillType === "Powder";
+            const isInhaler = data.pillType === "Inhaler";
 
             title = isSyrup
               ? "Volume per dose (ml)"
@@ -4670,9 +5146,13 @@ export default function App() {
                 ? "Drops per dose"
                 : isInj
                   ? "Units or ml per dose"
-                  : t("pillDoseQuest") || "Pills per dose";
+                  : isPowder
+                    ? "Quantity per dose (sachet, g, mg)"
+                    : isInhaler
+                      ? "Puffs per dose"
+                      : t("pillDoseQuest") || "Pills per dose";
 
-            emoji = isSyrup ? "🧪" : isDrops ? "💧" : isInj ? "💉" : "🔢";
+            emoji = isSyrup ? "🧪" : isDrops ? "💧" : isInj ? "💉" : isPowder ? "🧂" : isInhaler ? "💨" : "🔢";
 
             const placeholder = isSyrup
               ? "e.g. 5 or 10"
@@ -4680,9 +5160,13 @@ export default function App() {
                 ? "e.g. 3 or 5"
                 : isInj
                   ? "e.g. 10 or 0.5"
-                  : data.pillType === "Capsule"
-                    ? "e.g. 1 or 2"
-                    : "e.g. 1 or 0.5";
+                  : isPowder
+                    ? "e.g. 1 sachet or 5g"
+                    : isInhaler
+                      ? "e.g. 1 or 2"
+                      : data.pillType === "Capsule"
+                        ? "e.g. 1 or 2"
+                        : "e.g. 1 or 0.5";
 
             const helperText = isSyrup
               ? "Amount of syrup to take in ml"
@@ -4690,11 +5174,15 @@ export default function App() {
                 ? "Number of drops to take"
                 : isInj
                   ? "Specify dosage units or volume for injection"
-                  : data.pillType === "Capsule"
-                    ? "Number of capsules to take (whole numbers only)"
-                    : data.pillType === "Tablet"
-                      ? "Number of tablets to take (decimals like 0.5 allowed)"
-                      : "Number of pills/tablets/capsules to take";
+                  : isPowder
+                    ? "Amount of powder (e.g. 1 sachet, 500mg, 5g)"
+                    : isInhaler
+                      ? "Number of inhaler puffs to take"
+                      : data.pillType === "Capsule"
+                        ? "Number of capsules to take (whole numbers only)"
+                        : data.pillType === "Tablet"
+                          ? "Number of tablets to take (decimals like 0.5 allowed)"
+                          : "Number of pills/tablets/capsules to take";
 
             content = (
               <>
@@ -4723,7 +5211,14 @@ export default function App() {
             const freq = FREQ_OPTS.find(f => f.val === data.frequency || f.key === data.frequency) || FREQ_OPTS[0];
             content = (
               <div className="space-y-4">
-                <TimeInputs count={freq.count} slots={freq.slots} />
+                <TimeInputs 
+                  count={freq.count} 
+                  slots={freq.slots} 
+                  data={data} 
+                  wUpdate={wUpdate} 
+                  activeTimeSlot={activeTimeSlot} 
+                  setActiveTimeSlot={setActiveTimeSlot} 
+                />
                 <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
                   <p className="text-xs font-bold text-slate-500">Alert Mode</p>
                   <div className="grid grid-cols-2 gap-2">
@@ -4945,6 +5440,8 @@ export default function App() {
               const isSyrup = data.pillType === "Syrup";
               const isInj = data.pillType === "Injection";
               const isDrops = data.pillType === "Drops";
+              const isPowder = data.pillType === "Powder";
+              const isInhaler = data.pillType === "Inhaler";
 
               title = isSyrup
                 ? "Volume per dose (ml)"
@@ -4952,9 +5449,13 @@ export default function App() {
                   ? "Drops per dose"
                   : isInj
                     ? "Units or ml per dose"
-                    : t("pillDoseQuest") || "Pills per dose";
+                    : isPowder
+                      ? "Quantity per dose (sachet, g, mg)"
+                      : isInhaler
+                        ? "Puffs per dose"
+                        : t("pillDoseQuest") || "Pills per dose";
 
-              emoji = isSyrup ? "🧪" : isDrops ? "💧" : isInj ? "💉" : "🔢";
+              emoji = isSyrup ? "🧪" : isDrops ? "💧" : isInj ? "💉" : isPowder ? "🧂" : isInhaler ? "💨" : "🔢";
 
               const placeholder = isSyrup
                 ? "e.g. 5 or 10"
@@ -4962,7 +5463,11 @@ export default function App() {
                   ? "e.g. 3 or 5"
                   : isInj
                     ? "e.g. 10 or 0.5"
-                    : "e.g. 1 or 0.5";
+                    : isPowder
+                      ? "e.g. 1 sachet or 5g"
+                      : isInhaler
+                        ? "e.g. 1 or 2"
+                        : "e.g. 1 or 0.5";
 
               const helperText = isSyrup
                 ? "Amount of syrup to take in ml"
@@ -4970,7 +5475,11 @@ export default function App() {
                   ? "Number of drops to take"
                   : isInj
                     ? "Specify dosage units or volume for injection"
-                    : "Number of tablets/capsules to take (decimals like 0.5 allowed)";
+                    : isPowder
+                      ? "Amount of powder (e.g. 1 sachet, 500mg, 5g)"
+                      : isInhaler
+                        ? "Number of inhaler puffs to take"
+                        : "Number of tablets/capsules to take (decimals like 0.5 allowed)";
 
               content = (
                 <>
@@ -4996,7 +5505,14 @@ export default function App() {
               const freq = FREQ_OPTS.find(f => f.val === data.frequency || f.key === data.frequency) || FREQ_OPTS[0];
               content = (
                 <div className="space-y-4">
-                  <TimeInputs count={freq.count} slots={freq.slots} />
+                  <TimeInputs 
+                    count={freq.count} 
+                    slots={freq.slots} 
+                    data={data} 
+                    wUpdate={wUpdate} 
+                    activeTimeSlot={activeTimeSlot} 
+                    setActiveTimeSlot={setActiveTimeSlot} 
+                  />
                   <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
                     <p className="text-xs font-bold text-slate-500">Alert Mode</p>
                     <div className="grid grid-cols-2 gap-2">
@@ -5168,17 +5684,19 @@ export default function App() {
           <div className="pt-4" />
 
           {/* progress */}
-          <div className="px-5 pt-3 pb-1 flex-shrink-0">
-            <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${pctW}%`, background: "linear-gradient(90deg,#059669,#0d9488)" }} />
+          {step > 0 && (
+            <div className="px-5 pt-3 pb-1 flex-shrink-0">
+              <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-900 overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.round((step / (total - 1)) * 100)}%`, background: "linear-gradient(90deg,#059669,#0d9488)" }} />
+              </div>
+              <p className="text-[10px] text-slate-400 font-semibold mt-1">Step {step} of {total - 1}</p>
             </div>
-            <p className="text-[10px] text-slate-400 font-semibold mt-1">Step {step + 1} of {total}</p>
-          </div>
+          )}
 
           {/* body */}
           <div className="flex-1 overflow-y-auto px-5 py-3" style={{ scrollbarWidth: "none" }}>
-            <div className="text-4xl mb-2 text-center">{emoji}</div>
+            {renderWizardIcon(emoji)}
             <h3 className="text-lg font-extrabold text-slate-800 text-center mb-3">{title}</h3>
             {forMember && step === 0 && (
               <p className="text-xs text-center text-slate-400 mb-2">
@@ -5833,7 +6351,7 @@ The above content shows the entire, complete file contents of the requested file
                     <div className="absolute inset-2 rounded-full bg-teal-500/10 animate-ripple" style={{ animationDelay: '0.6s' }} />
                     
                     <div className="w-24 h-24 rounded-full bg-white border-4 border-teal-500 flex items-center justify-center shadow-[0_4px_24px_rgba(20,184,166,0.15)] animate-heartpulse">
-                      <span className="text-5xl">{active.emoji}</span>
+                      <CustomIcon name={active.emoji || "pill"} className="w-16 h-16" />
                     </div>
                   </div>
 
@@ -5925,7 +6443,7 @@ The above content shows the entire, complete file contents of the requested file
                 </div>
                 <div>
                   <h4 className="text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
-                    {active.emoji} {active.label}
+                    {getEmojiChar(active.emoji)} {active.label}
                   </h4>
                   <p className="text-xs text-slate-500 mt-0.5">{active.sub}</p>
                   <p className="text-[10px] text-teal-600 font-bold mt-1">Scheduled Time: {active.time}</p>
