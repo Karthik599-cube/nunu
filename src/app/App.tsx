@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { GeminiChatModal } from "./components/GeminiChatModal";
 import { getGeminiApiKey, saveGeminiApiKey, isGeminiConfigured } from "../services/geminiService";
+import { requestNotificationPermission, syncAllNotifications, sendInstantNotification } from "../services/notificationService";
 
 /* ═══════════════════════════════════════════════════════════════
    TYPES
@@ -2475,6 +2476,13 @@ export default function App() {
     }
   }, [activeDay, view, activeNav, reminders]);
 
+  // Sync mobile APK local notifications
+  useEffect(() => {
+    if (reminders && reminders.length > 0) {
+      syncAllNotifications(reminders);
+    }
+  }, [reminders]);
+
   /* ── health trackers state ───────────────────────────────── */
   const [waterIntake, setWaterIntake] = useState(1450); // in ml
   const [waterTarget] = useState(2500); // in ml
@@ -2942,6 +2950,7 @@ export default function App() {
           playPreviewSound(settings.notificationSound || "default");
         }
 
+        sendInstantNotification("💊 Nunu Reminder", `It's time to take your ${activeRem.label} (${activeRem.sub || ""})!`);
         if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
           new Notification("Nunu Reminder", {
             body: `It's time to take your ${activeRem.label} (${activeRem.sub || ""})!`,
@@ -4511,6 +4520,27 @@ export default function App() {
                 style={{ left: settings.sound ? "calc(100% - 22px)" : "2px" }} />
             </button>
           </div>
+
+          {/* Test Mobile Notification */}
+          <button onClick={async () => {
+            const granted = await requestNotificationPermission();
+            if (granted) {
+              await sendInstantNotification("💊 Nunu Pill Reminder Test", "Mobile APK local notifications are working perfectly!");
+              alert("Test notification sent to your mobile device!");
+            } else {
+              alert("Notification permissions are not enabled. Please enable notification permissions in your phone settings.");
+            }
+          }} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors"
+            style={{ borderBottom: "1px solid #f8fafc" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#10b981,#059669)" }}>
+              <Bell className="w-[18px] h-[18px] text-white" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-bold text-slate-800">Test Mobile Notification</p>
+              <p className="text-xs text-slate-400">Send instant test notification to device</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-300" />
+          </button>
 
           {/* Customize */}
           <button onClick={() => {
