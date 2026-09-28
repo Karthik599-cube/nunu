@@ -1,0 +1,6 @@
+{
+  "appId": "com.easydose.app",
+  "appName": "nunu",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

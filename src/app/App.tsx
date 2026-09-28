@@ -6,8 +6,10 @@ import {
   ArrowLeft, Pencil, Trash2, Phone, Mail, Lock, UserPlus,
   Moon, Sun, Volume2, Globe, Info, Palette, Stethoscope,
   Eye, EyeOff, AlertCircle, CheckCircle2, CalendarDays, CalendarClock,
-  Droplets, Activity, Wind, Zap, Minus, LogOut, Sparkles,
+  Droplets, Activity, Wind, Zap, Minus, LogOut, Sparkles, Key, ExternalLink
 } from "lucide-react";
+import { GeminiChatModal } from "./components/GeminiChatModal";
+import { getGeminiApiKey, saveGeminiApiKey, isGeminiConfigured } from "../services/geminiService";
 
 /* ═══════════════════════════════════════════════════════════════
    TYPES
@@ -50,7 +52,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     settings: "Settings",
     goodMorning: "Good Morning! 🌿",
     myProgress: "My Progress 📊",
-    healthOverview: "Health Overview 🫀",
+    healthOverview: "Health Overview",
     remainingReminders: "remaining",
     allDone: "All done for today! 🎉",
     done: "done",
@@ -142,7 +144,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     settings: "அமைப்புகள்",
     goodMorning: "காலை வணக்கம்! 🌿",
     myProgress: "என் முன்னேற்றம் 📊",
-    healthOverview: "உடல்நலம் கண்ணோട്ടം 🫀",
+    healthOverview: "உடல்நலம் கண்ணோട്ടം",
     remainingReminders: "மீதமுள்ளது",
     allDone: "இன்றைய மருந்துகள் முடிந்தது! 🎉",
     done: "முடிந்தது",
@@ -233,7 +235,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     settings: "सेटिंग्स",
     goodMorning: "शुभ प्रभात! 🌿",
     myProgress: "मेरी प्रगति 📊",
-    healthOverview: "स्वास्थ्य अवलोकन 🫀",
+    healthOverview: "स्वास्थ्य अवलोकन",
     remainingReminders: "शेष दवाएं",
     allDone: "आज के लिए सब पूरा हो गया! 🎉",
     done: "पूरा",
@@ -324,7 +326,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     settings: "ಸೆಟ್ಟಿಂಗ್ಸ್",
     goodMorning: "ಶುಭೋದಯ! 🌿",
     myProgress: "ನನ್ನ ಪ್ರಗತಿ 📊",
-    healthOverview: "ಆರೋಗ್ಯದ ವಿವರ 🫀",
+    healthOverview: "ಆರೋಗ್ಯದ ವಿವರ",
     remainingReminders: "ಉಳಿದಿದೆ",
     allDone: "ಇಂದಿನ ಮಾತ್ರೆಗಳು ಮುಗಿದಿವೆ! 🎉",
     done: "ಮುಗಿದಿದೆ",
@@ -415,7 +417,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     settings: "సెట్టింగులు",
     goodMorning: "శుభోదయం! 🌿",
     myProgress: "నా ప్రగతి 📊",
-    healthOverview: "ఆరోగ్య అవలోకనం 🫀",
+    healthOverview: "ఆరోగ్య అవలోకనం",
     remainingReminders: "మిగిలి ఉన్నాయి",
     allDone: "ఈ రోజుకి అన్నీ పూర్తయ్యాయి! 🎉",
     done: "పూర్తయింది",
@@ -506,7 +508,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     settings: "ക്രമീകരണങ്ങൾ",
     goodMorning: "സുപ്രഭാതം! 🌿",
     myProgress: "എന്റെ പുരോഗതി 📊",
-    healthOverview: "ആരോഗ്യ വിവരണം 🫀",
+    healthOverview: "ആരോഗ്യ വിവരണം",
     remainingReminders: "ബാക്കിയുണ്ട്",
     allDone: "ഇന്നത്തെ മരുന്നുകൾ കഴിഞ്ഞു! 🎉",
     done: "കഴിഞ്ഞു",
@@ -1105,49 +1107,8 @@ function CustomIcon({ name, className = "w-9 h-9" }: { name: string; className?:
 }
 
 function NunuLogo({ className = "h-10", variant = "colored" }: { className?: string; variant?: "colored" | "white" }) {
-  const isWhite = variant === "white";
-  const textFill = isWhite ? "#ffffff" : "url(#nunuTextGrad)";
-  const subTextFill = isWhite ? "rgba(255,255,255,0.7)" : "#64748b";
-  const pillStroke = isWhite ? "#ffffff" : "url(#nunuPillGrad)";
-  const pillFill = isWhite ? "#ffffff" : "url(#nunuPillGrad)";
-
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" className={className}>
-      <defs>
-        <linearGradient id="nunuPillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#2563eb"/>
-          <stop offset="100%" stopColor="#0d9488"/>
-        </linearGradient>
-        <linearGradient id="nunuTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#1e40af"/>
-          <stop offset="60%" stopColor="#0e7490"/>
-          <stop offset="100%" stopColor="#10b981"/>
-        </linearGradient>
-      </defs>
-      <g transform="translate(10, 5)">
-        <g transform="rotate(-40 20 20)">
-          <rect x="5" y="11" width="30" height="18" rx="9" fill="none" stroke={pillStroke} strokeWidth="4.5"/>
-          <path d="M 20,11 L 14,11 A 9,9 0 0,0 14,29 L 20,29 Z" fill={pillFill}/>
-          <line x1="20" y1="11" x2="20" y2="29" stroke={isWhite ? "#14B8A6" : "#ffffff"} strokeWidth="2"/>
-        </g>
-        <path d="M 5,28 C 15,22 25,18 35,12 C 30,17 25,25 15,31 Z" fill={isWhite ? "rgba(255,255,255,0.8)" : "#86efac"} opacity="0.9"/>
-        <path d="M 5,28 Q 20,20 35,12" fill="none" stroke={isWhite ? "#ffffff" : "#22c55e"} strokeWidth="2.5" stroke-linecap="round"/>
-      </g>
-      <g transform="translate(55, 10)">
-        {/* Custom rounded paths for "nunu" to match the logo design font */}
-        <g fill="none" stroke={textFill} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
-          {/* n */}
-          <path d="M 0,20 L 0,10 A 5,5 0 0 1 10,10 L 10,20" />
-          {/* u */}
-          <path d="M 17,10 L 17,15 A 5,5 0 0 0 27,15 L 27,10" />
-          {/* n */}
-          <path d="M 34,20 L 34,10 A 5,5 0 0 1 44,10 L 44,20" />
-          {/* u */}
-          <path d="M 51,10 L 51,15 A 5,5 0 0 0 61,15 L 61,10" />
-        </g>
-        <text x="1" y="32" fontFamily="Inter, sans-serif" fontWeight="700" fontSize="8" fill={subTextFill} letterSpacing="0.5">Trust &amp; Health</text>
-      </g>
-    </svg>
+    <img src="/nunu_logo.png" className={className} style={{ objectFit: "contain" }} alt="nunu" />
   );
 }
 
@@ -1406,11 +1367,46 @@ function TimeClockPicker({ value, onChange }: { value: string; onChange: (v: str
 function SInput({ label, value, onChange, placeholder, type = "text", min, hasError, shake }: {
   label?: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; min?: string; hasError?: boolean; shake?: boolean;
 }) {
+  const [showPicker, setShowPicker] = useState(false);
+
   if (type === "time") {
     return (
       <div className={shake ? "animate-shake" : ""}>
         {label && <p className={`text-xs font-bold mb-1.5 ${hasError ? "text-red-500" : "text-slate-500"}`}>{label}</p>}
-        <TimeClockPicker value={value} onChange={onChange} />
+        
+        {/* Normal text input displaying formatted time */}
+        <div className="relative">
+          <input
+            type="text"
+            readOnly
+            value={fmtTime(value)}
+            onClick={() => setShowPicker(prev => !prev)}
+            placeholder={placeholder || "Select time"}
+            className="w-full px-4 py-3.5 rounded-2xl text-sm font-semibold outline-none transition-all cursor-pointer select-none"
+            style={{
+              border: hasError ? "1.5px solid #ef4444" : "1.5px solid rgba(20,184,166,0.15)",
+              color: hasError ? "#991b1b" : "#1e293b",
+              background: hasError ? "#fef2f2" : "#EFF6FF"
+            }}
+          />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-xs">
+            ⏰
+          </div>
+        </div>
+
+        {/* Inline Clock picker */}
+        {showPicker && (
+          <div className="mt-3 p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-sm space-y-3 animate-in fade-in duration-200">
+            <TimeClockPicker value={value || "09:00"} onChange={onChange} />
+            <button
+              type="button"
+              onClick={() => setShowPicker(false)}
+              className="w-full py-2.5 rounded-xl bg-teal-500 hover:bg-teal-650 active:scale-95 text-white font-extrabold text-xs transition-all text-center"
+            >
+              Done
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -1919,7 +1915,7 @@ function AuthView({ showToast, t, setSession }: { showToast: (msg: string, type?
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%,-30%)" }} />
         <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-10 bg-white" style={{ transform: "translate(-20%,20%)" }} />
 
-        <NunuLogo className="h-16 w-auto mb-2" variant="white" />
+        <NunuLogo className="h-28 w-auto mb-2" variant="white" />
         <p className="text-white/70 text-xs mt-1 max-w-[220px]">
           Your personal smart medication reminder & health assistant
         </p>
@@ -2249,12 +2245,24 @@ function OnboardingView({ session, onComplete, t, onBack }: { session: any, onCo
 }
 
 export default function App() {
+  /* ── Gemini AI Assistant State ───────────────────────────── */
+  const [isAiOpen, setIsAiOpen] = useState(false);
+  const [geminiKeyInput, setGeminiKeyInput] = useState(() => getGeminiApiKey());
+
   /* ── authentication ──────────────────────────────────────── */
   const [session, setSession] = useState<any>(null);
   const [checkingSession, setCheckingSession] = useState(true);
   const [onboarded, setOnboarded] = useState<boolean>(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeTimeSlot, setActiveTimeSlot] = useState(0);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
 
   /* ── settings ────────────────────────────────────────────── */
   const [settings, setSettings] = useState({
@@ -2266,6 +2274,8 @@ export default function App() {
   });
   const [showAbout, setShowAbout] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
+  const [tempNotificationType, setTempNotificationType] = useState<string>("notification");
+  const [tempNotificationSound, setTempNotificationSound] = useState<string>("default");
 
   const currentLang = settings.language || "English";
   const t = (key: string) => {
@@ -2381,6 +2391,9 @@ export default function App() {
   const [wizardError, setWizardError] = useState(false);
   const [shakeWizard, setShakeWizard] = useState(false);
   const [rescheduleRem, setRescheduleRem] = useState<Reminder | null>(null);
+  const [rescheduleAppt, setRescheduleAppt] = useState<DocAppt | null>(null);
+  const [activeApptNotification, setActiveApptNotification] = useState<DocAppt | null>(null);
+  const [notifiedAppts, setNotifiedAppts] = useState<string[]>([]);
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("");
   const [reschedEndDate, setReschedEndDate] = useState("");
@@ -2402,8 +2415,30 @@ export default function App() {
 
   const [showNotif, setShowNotif] = useState(false);
   const [activeLiveNotification, setActiveLiveNotification] = useState<Reminder | null>(null);
+  const [activeSleepAlarm, setActiveSleepAlarm] = useState<"sleep" | "wakeup" | null>(null);
+  const [snoozeTargetTime, setSnoozeTargetTime] = useState<number | null>(null);
+  const [snoozeAlarmType, setSnoozeAlarmType] = useState<"sleep" | "wakeup" | null>(null);
+  const [showSnoozeSelection, setShowSnoozeSelection] = useState<boolean>(false);
   const [skippingReminder, setSkippingReminder] = useState<Reminder | null>(null);
   const [notifiedReminders, setNotifiedReminders] = useState<string[]>([]);
+  const [notifiedSleepAlarms, setNotifiedSleepAlarms] = useState<string[]>([]);
+
+  const snoozeOptions = [
+    { label: "5m", val: 5 },
+    { label: "10m", val: 10 },
+    { label: "15m", val: 15 },
+    { label: "30m", val: 30 },
+    { label: "1h", val: 60 }
+  ];
+
+  const handleSnoozeClick = (mins: number) => {
+    const target = Date.now() + mins * 60 * 1000;
+    setSnoozeTargetTime(target);
+    setSnoozeAlarmType(activeSleepAlarm);
+    setActiveSleepAlarm(null);
+    setShowSnoozeSelection(false);
+    showToast(`Alarm snoozed for ${mins} minutes`, "success");
+  };
   const [showAI, setShowAI] = useState(false);
   const [aiInput, setAiInput] = useState("");
   const [aiMsgs, setAiMsgs] = useState([
@@ -2562,10 +2597,12 @@ export default function App() {
       try {
         // 1. Profile Load/Create
         let userProfile = null;
+        let profileExists = false;
         try {
           const profileRes = await supabase.from("profile").select("*").eq("id", session.user.id).maybeSingle();
           if (profileRes.data) {
             userProfile = profileRes.data;
+            profileExists = true;
           } else {
             const signupName = pendingSignupName || session.user.user_metadata?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "User";
             const newProfile = {
@@ -2598,7 +2635,7 @@ export default function App() {
         let hasLocalData = false;
 
         const localDataStr = localStorage.getItem(`easydose_data_${session.user.id}`);
-        let onboardedVal = false;
+        let onboardedVal = true;
         if (localDataStr) {
           try {
             const d = JSON.parse(localDataStr);
@@ -2819,6 +2856,76 @@ export default function App() {
 
       console.log(`[Notification Engine] Checking: today=${todayStr}, time=${curFormattedTime} (alt: ${currentMinStr}). Active Reminders:`, reminders.filter(r => !r.taken).map(r => `${r.label} at ${r.date} ${r.time}`));
 
+      // Check Bedtime Alarm
+      if (bedtime) {
+        const key = `sleep_${todayStr}_${bedtime}`;
+        if (!notifiedSleepAlarms.includes(key) && currentMinStr === bedtime) {
+          setNotifiedSleepAlarms(prev => [...prev, key]);
+          setActiveSleepAlarm("sleep");
+          setShowSnoozeSelection(false);
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            new Notification("Sleep Cycle Alert", {
+              body: "it's time to sleep",
+              icon: "/favicon.ico"
+            });
+          }
+        }
+      }
+
+      // Check Wake Up Alarm
+      if (waketime) {
+        const key = `wakeup_${todayStr}_${waketime}`;
+        if (!notifiedSleepAlarms.includes(key) && currentMinStr === waketime) {
+          setNotifiedSleepAlarms(prev => [...prev, key]);
+          setActiveSleepAlarm("wakeup");
+          setShowSnoozeSelection(false);
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            new Notification("Sleep Cycle Alert", {
+              body: "its time to wakeup",
+              icon: "/favicon.ico"
+            });
+          }
+        }
+      }
+
+      // Check Snoozed Alarm
+      if (snoozeTargetTime && Date.now() >= snoozeTargetTime && snoozeAlarmType) {
+        setActiveSleepAlarm(snoozeAlarmType);
+        setSnoozeTargetTime(null);
+        setSnoozeAlarmType(null);
+        setShowSnoozeSelection(false);
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+          new Notification("Sleep Cycle Alert", {
+            body: snoozeAlarmType === "sleep" ? "it's time to sleep" : "its time to wakeup",
+            icon: "/favicon.ico"
+          });
+        }
+      }
+
+      // Check Doctor Appointments
+      const activeAppt = appointments.find(a => {
+        if (a.date !== todayStr) return false;
+        if (notifiedAppts.includes(`${a.id}_${a.time}`)) return false;
+        
+        return norm(a.time) === norm(currentMinStr) || norm(a.time) === norm(curFormattedTime);
+      });
+
+      if (activeAppt) {
+        setNotifiedAppts(prev => [...prev, `${activeAppt.id}_${activeAppt.time}`]);
+        setActiveApptNotification(activeAppt);
+        
+        if (settings.sound) {
+          playPreviewSound(settings.notificationSound || "default");
+        }
+
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+          new Notification("Doctor Appointment Alert", {
+            body: `You have an appointment now with ${activeAppt.doctor} (${activeAppt.specialty})!`,
+            icon: "/favicon.ico"
+          });
+        }
+      }
+
       const activeRem = reminders.find(r => {
         if (r.taken || r.date !== todayStr) return false;
         if (notifiedReminders.includes(`${r.id}_${r.time}`)) return false;
@@ -2830,7 +2937,7 @@ export default function App() {
         setNotifiedReminders(prev => [...prev, `${activeRem.id}_${activeRem.time}`]);
         setActiveLiveNotification(activeRem);
         
-        const isAlarm = activeRem.alarmMode === true || activeRem.alarmMode === "true";
+        const isAlarm = activeRem.alarmMode === true || activeRem.alarmMode === "true" || settings.notificationType === "alarm";
         if (settings.sound && !isAlarm) {
           playPreviewSound(settings.notificationSound || "default");
         }
@@ -2845,13 +2952,14 @@ export default function App() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [reminders, notifiedReminders, isLoaded, session, settings]);
+  }, [reminders, notifiedReminders, isLoaded, session, settings, bedtime, waketime, notifiedSleepAlarms, snoozeTargetTime, snoozeAlarmType, appointments, notifiedAppts]);
 
   // Continuous Alarm Audio loop
   useEffect(() => {
     let intervalId: any = null;
-    const isAlarm = activeLiveNotification && (activeLiveNotification.alarmMode === true || activeLiveNotification.alarmMode === "true");
-    if (activeLiveNotification && isAlarm && settings.sound) {
+    const isAlarm = activeLiveNotification && (activeLiveNotification.alarmMode === true || activeLiveNotification.alarmMode === "true" || settings.notificationType === "alarm");
+    const isSleepAlarm = activeSleepAlarm !== null;
+    if (settings.sound && (isAlarm || isSleepAlarm)) {
       // Play immediately
       playPreviewSound(settings.notificationSound || "default");
       // Repeat every 1.5 seconds
@@ -2862,7 +2970,7 @@ export default function App() {
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [activeLiveNotification, settings.sound, settings.notificationSound]);
+  }, [activeLiveNotification, activeSleepAlarm, settings.sound, settings.notificationSound, settings.notificationType]);
 
   const startScanning = () => {
     if (scanState === "complete") {
@@ -2905,9 +3013,16 @@ export default function App() {
   }, []);
 
   function calculateHours(bed: string, wake: string): number {
+    if (!bed || !wake) return 0;
     try {
-      const [bh, bm] = bed.split(":").map(Number);
-      const [wh, wm] = wake.split(":").map(Number);
+      const partsBed = bed.split(":");
+      const partsWake = wake.split(":");
+      if (partsBed.length < 2 || partsWake.length < 2) return 0;
+      const bh = Number(partsBed[0]);
+      const bm = Number(partsBed[1]);
+      const wh = Number(partsWake[0]);
+      const wm = Number(partsWake[1]);
+      if (isNaN(bh) || isNaN(bm) || isNaN(wh) || isNaN(wm)) return 0;
       let bedMins = bh * 60 + bm;
       let wakeMins = wh * 60 + wm;
       if (wakeMins < bedMins) {
@@ -2915,7 +3030,7 @@ export default function App() {
       }
       return Math.round(((wakeMins - bedMins) / 60) * 10) / 10;
     } catch {
-      return 8.0;
+      return 0;
     }
   }
 
@@ -3115,7 +3230,12 @@ export default function App() {
       const { error } = await supabase.from("appointments").insert([{ ...item, user_id: session?.user?.id }]);
       if (error) {
         console.error("Error adding appointment to Supabase:", error);
-        showToast("Supabase Error: " + error.message, "error");
+        // Fallback without user_id column
+        const { error: fallbackErr } = await supabase.from("appointments").insert([item]);
+        if (fallbackErr) {
+          console.error("Fallback error adding appointment to Supabase:", fallbackErr);
+          showToast("Supabase Error: " + fallbackErr.message, "error");
+        }
       }
     } catch (err) {
       console.error("Error adding appointment to Supabase:", err);
@@ -3406,10 +3526,16 @@ export default function App() {
       setAppointments(p => [...p, item]);
       setWizard(null);
       try {
-        const { error } = await supabase.from("appointments").insert([item]);
+        const { error } = await supabase.from("appointments").insert([{ ...item, user_id: session?.user?.id }]);
         if (error) {
-          console.error("Error adding appointment to Supabase:", error);
-          showToast("Supabase Error: " + error.message, "error");
+          console.error("Error adding appointment to Supabase with user_id:", error);
+          const { error: fallbackErr } = await supabase.from("appointments").insert([item]);
+          if (fallbackErr) {
+            console.error("Fallback error adding appointment to Supabase:", fallbackErr);
+            showToast("Supabase Error: " + fallbackErr.message, "error");
+          } else {
+            showToast("Appointment scheduled successfully!", "success");
+          }
         } else {
           showToast("Appointment scheduled successfully!", "success");
         }
@@ -3663,14 +3789,14 @@ export default function App() {
   ═══════════════════════════════════════════════════════════ */
   function MainHeader() {
     return (
-      <div className="relative px-5 pt-5 pb-4 flex-shrink-0"
+      <div className="relative px-5 pt-3.5 pb-4 flex-shrink-0"
         style={{ background: "linear-gradient(135deg,#14B8A6 0%,#0ea5a0 55%,#0891b2 100%)" }}>
         <div className="absolute top-0 right-0 w-44 h-44 rounded-full opacity-10 bg-white" style={{ transform: "translate(35%,-35%)" }} />
         <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full opacity-10 bg-white" style={{ transform: "translate(-30%,30%)" }} />
 
         {/* topbar */}
         <div className="relative flex items-center justify-between mb-3">
-          <NunuLogo className="h-10 w-auto" variant="white" />
+          <NunuLogo className="h-18 w-auto -ml-2.5" variant="white" />
           <div className="flex items-center gap-2">
             <button onClick={() => setShowNotif(true)}
               className="relative w-9 h-9 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center">
@@ -3946,12 +4072,23 @@ export default function App() {
                 <p className="text-sm font-extrabold text-slate-800 truncate">{appt.doctor}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <Clock className="w-3 h-3 text-slate-400" />
-                  <span className="text-xs text-slate-400 font-semibold">{appt.time}</span>
+                  <span className="text-xs text-slate-400 font-semibold">{fmtTime(appt.time)}</span>
                   <span className="text-slate-200 mx-0.5">·</span>
                   <span className="text-xs text-slate-400 font-bold truncate">{appt.specialty}</span>
                 </div>
                 {appt.notes && <p className="text-[11px] text-slate-400 mt-1 italic">{appt.notes}</p>}
               </div>
+              {appt.date >= TODAY && (
+                <button onClick={() => {
+                  setRescheduleAppt(appt);
+                  setReschedDate(appt.date);
+                  setReschedTime(appt.time);
+                }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition-all text-slate-500 hover:text-slate-700 active:scale-90"
+                  title="Reschedule">
+                  <CalendarClock className="w-4 h-4" />
+                </button>
+              )}
               <button onClick={() => deleteAppointment(appt.id)}
                 className="w-8 h-8 rounded-full flex items-center justify-center bg-red-50 border border-red-100 hover:bg-red-100 hover:border-red-200 transition-all text-red-500 hover:text-red-700 active:scale-90"
                 title="Delete">
@@ -4152,50 +4289,45 @@ export default function App() {
 
     const totalPillsStock = pillStocks.reduce((sum, p) => sum + p.stock, 0);
 
-    const stats = [
-      { label: t("streak"), val: `${streak} days`, emoji: "🔥", color: "#f59e0b", onClick: null },
-      { label: t("adherence"), val: `${adherencePct}%`, emoji: "✅", color: "#22C55E", onClick: null },
-      { label: t("missed"), val: `${missedPct}%`, emoji: "❌", color: "#ef4444", onClick: null },
-      { label: "Stock", val: "Pill Box", emoji: "📦", color: "#6366f1", onClick: () => setView("pillbox") },
-    ];
-
     const bpClass = getBPClass(bpSystolic, bpDiastolic);
 
     return (
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4" style={{ scrollbarWidth: "none" }}>
-        {/* original stats */}
-        <div className="grid grid-cols-4 gap-2">
-          {stats.map(s => (
-            s.onClick ? (
-              <button key={s.label} onClick={s.onClick}
-                className="bg-white rounded-2xl p-2.5 text-center shadow-sm border border-slate-50 hover:bg-slate-50 active:scale-95 transition-all outline-none cursor-pointer flex flex-col items-center justify-center">
-                <div className="text-lg mb-0.5">{s.emoji}</div>
-                <p className="text-xs font-black" style={{ color: s.color }}>{s.val}</p>
-                <p className="text-[9px] text-slate-400 font-bold">{s.label}</p>
-              </button>
-            ) : (
-              <div key={s.label} className="bg-white rounded-2xl p-2.5 text-center shadow-sm border border-slate-50 flex flex-col items-center justify-center">
-                <div className="text-lg mb-0.5">{s.emoji}</div>
-                <p className="text-xs font-black" style={{ color: s.color }}>{s.val}</p>
-                <p className="text-[9px] text-slate-400 font-bold">{s.label}</p>
-              </div>
-            )
-          ))}
-        </div>
-
-
-        {/* Weekly Adherence */}
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-50">
-          <p className="text-xs font-extrabold text-slate-800 mb-3">{t("weeklyAdherence")}</p>
-          <div className="flex items-end gap-1.5 h-16">
-            {[80, 100, 60, 100, 75, 90, 50].map((h, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-full rounded-t-md" style={{ height: `${h}%`, background: "linear-gradient(180deg,#14B8A6,#0ea5a0)", opacity: i === 1 ? 1 : .6 }} />
-                <span className="text-[8px] text-slate-400 font-bold">{DAY_LABELS[i]}</span>
-              </div>
-            ))}
+        {/* Adherence & Missed Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-slate-50 flex flex-col items-center justify-center">
+            <div className="text-2xl mb-1">✅</div>
+            <p className="text-lg font-black text-emerald-500">{adherencePct}%</p>
+            <p className="text-xs text-slate-400 font-bold">{t("adherence")}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-slate-50 flex flex-col items-center justify-center">
+            <div className="text-2xl mb-1">❌</div>
+            <p className="text-lg font-black text-rose-500">{missedPct}%</p>
+            <p className="text-xs text-slate-400 font-bold">{t("missed")}</p>
           </div>
         </div>
+
+        {/* Medicine Box Card */}
+        <button 
+          onClick={() => setView("pillbox")}
+          className="w-full bg-white rounded-3xl p-5 shadow-sm border border-slate-50 hover:bg-slate-50 active:scale-[0.98] transition-all outline-none text-left flex items-center justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-2xl text-teal-600">
+              📦
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-800">Medicine Box</h3>
+              <p className="text-xs text-slate-400 font-bold mt-0.5">Manage stock & refill alerts</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-teal-50 text-teal-600 text-xs font-black rounded-full">
+              {pillStocks.length} Items
+            </span>
+            <ChevronRight className="w-5 h-5 text-slate-300" />
+          </div>
+        </button>
 
         {/* 2. Sleep Cycle */}
         <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-50 relative overflow-hidden">
@@ -4299,50 +4431,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* 4. Heart Rate */}
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-50 relative overflow-hidden">
-          <div className="relative z-10 flex justify-between items-center mb-3">
-            <div>
-              <h3 className="text-xs font-black text-slate-800 uppercase tracking-wide">{t("heartRate")}</h3>
-              <p className="text-[10px] text-slate-400 font-bold">{t("avgResting")}: {heartRateHistory[0] || 68} BPM</p>
-            </div>
-            <div className="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600">
-              <Heart className="w-4 h-4 animate-heartpulse" />
-            </div>
-          </div>
-
-          <div className="relative z-10 flex items-end justify-between gap-4 mb-2">
-            <div>
-              <p className="text-2xl font-black tracking-tight text-slate-800">{heartRate} <span className="text-xs font-bold text-slate-400">BPM</span></p>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t("currentPulse")}</p>
-            </div>
-
-            {/* Sparkline chart */}
-            <div className="flex items-end gap-1 h-8 pb-0.5">
-              {heartRateHistory.map((hr, i) => (
-                <div
-                  key={i}
-                  className="w-1.5 bg-teal-100 hover:bg-teal-400 rounded-t-sm transition-all cursor-pointer"
-                  style={{
-                    height: `${Math.max(20, Math.min(100, ((hr - 50) / 70) * 100))}%`,
-                    opacity: i === heartRateHistory.length - 1 ? 1 : 0.6
-                  }}
-                  title={`${hr} BPM`}
-                />
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={() => {
-              setTempHeartRate(heartRate);
-              setShowPulseScanner(true);
-            }}
-            className="relative z-10 w-full py-2 bg-slate-50 hover:bg-slate-100 active:scale-[0.98] border border-slate-100 rounded-xl text-[10px] font-bold text-slate-700 transition-all flex items-center justify-center gap-1"
-          >
-            ❤️ Log Heart Rate
-          </button>
-        </div>
+        {/* Heart Rate block removed */}
 
         {/* Tip */}
         <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-50">
@@ -4424,7 +4513,11 @@ export default function App() {
           </div>
 
           {/* Customize */}
-          <button onClick={() => setShowCustomize(true)} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors"
+          <button onClick={() => {
+            setTempNotificationType(settings.notificationType || "notification");
+            setTempNotificationSound(settings.notificationSound || "default");
+            setShowCustomize(true);
+          }} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors"
             style={{ borderBottom: "1px solid #f8fafc" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#ec4899,#f43f5e)" }}>
               <Palette className="w-[18px] h-[18px] text-white" />
@@ -4437,7 +4530,7 @@ export default function App() {
           </button>
 
           {/* Language */}
-          <div className="flex items-center gap-3 px-4 py-3.5">
+          <div className="flex items-center gap-3 px-4 py-3.5" style={{ borderBottom: "1px solid #f8fafc" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#0ea5e9,#0891b2)" }}>
               <Globe className="w-[18px] h-[18px] text-white" />
             </div>
@@ -4452,6 +4545,25 @@ export default function App() {
               ))}
             </select>
           </div>
+
+          {/* Gemini AI API Key */}
+          <div className="flex items-center gap-3 px-4 py-3.5">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#10b981,#059669)" }}>
+              <Key className="w-[18px] h-[18px] text-white" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-bold text-slate-800">Google Gemini API Key</p>
+              <p className="text-xs text-slate-400">
+                {isGeminiConfigured() ? "API Key Active ✨" : "Key Required for AI Chat"}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsAiOpen(true)}
+              className="text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-3 py-1.5 transition-all"
+            >
+              {isGeminiConfigured() ? "Manage" : "Configure"}
+            </button>
+          </div>
         </div>
         <div className="h-8" />
 
@@ -4462,7 +4574,7 @@ export default function App() {
             <div className="w-full max-w-[340px] bg-white rounded-[32px] p-6 space-y-4 shadow-2xl">
               <div className="flex justify-center"><div className="w-10 h-1 rounded-full bg-slate-200 mb-1" /></div>
               <div className="flex flex-col items-center gap-2 py-2 w-full">
-                <NunuLogo className="h-14 w-auto mb-1" variant="colored" />
+                <NunuLogo className="h-24 w-auto mb-1" variant="colored" />
                 <p className="text-sm text-slate-400 font-semibold">{t("version")}</p>
               </div>
               <p className="text-sm text-slate-500 text-center leading-relaxed">
@@ -4496,8 +4608,8 @@ export default function App() {
                 <label className="text-xs font-bold text-slate-500 block">Alert Type</label>
                 <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-2xl">
                   <button
-                    onClick={() => setSettings(s => ({ ...s, notificationType: "notification" }))}
-                    className={`py-2 rounded-xl text-xs font-bold transition-all ${settings.notificationType === "notification"
+                    onClick={() => setTempNotificationType("notification")}
+                    className={`py-2 rounded-xl text-xs font-bold transition-all ${tempNotificationType === "notification"
                       ? "bg-white text-emerald-600 shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
                       }`}
@@ -4505,8 +4617,8 @@ export default function App() {
                     Notification
                   </button>
                   <button
-                    onClick={() => setSettings(s => ({ ...s, notificationType: "alarm" }))}
-                    className={`py-2 rounded-xl text-xs font-bold transition-all ${settings.notificationType === "alarm"
+                    onClick={() => setTempNotificationType("alarm")}
+                    className={`py-2 rounded-xl text-xs font-bold transition-all ${tempNotificationType === "alarm"
                       ? "bg-white text-emerald-600 shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
                       }`}
@@ -4521,10 +4633,10 @@ export default function App() {
                 <label className="text-xs font-bold text-slate-500 block">Notification Sound</label>
                 <div className="flex gap-2 items-center">
                   <select
-                    value={settings.notificationSound || "default"}
+                    value={tempNotificationSound}
                     onChange={e => {
                       const sound = e.target.value;
-                      setSettings(s => ({ ...s, notificationSound: sound }));
+                      setTempNotificationSound(sound);
                       playPreviewSound(sound);
                     }}
                     className="flex-1 text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 outline-none focus:border-emerald-500/30"
@@ -4536,7 +4648,7 @@ export default function App() {
                     <option value="digital">Digital Chirp</option>
                   </select>
                   <button
-                    onClick={() => playPreviewSound(settings.notificationSound)}
+                    onClick={() => playPreviewSound(tempNotificationSound)}
                     className="w-11 h-11 rounded-2xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 transition-all active:scale-95 flex-shrink-0"
                     title="Play Preview"
                   >
@@ -4546,7 +4658,14 @@ export default function App() {
               </div>
 
               <button
-                onClick={() => setShowCustomize(false)}
+                onClick={() => {
+                  setSettings(s => ({
+                    ...s,
+                    notificationType: tempNotificationType,
+                    notificationSound: tempNotificationSound
+                  }));
+                  setShowCustomize(false);
+                }}
                 className="w-full py-3 rounded-2xl text-sm font-extrabold text-white"
                 style={{ background: "linear-gradient(135deg,#14B8A6,#0ea5a0)" }}
               >
@@ -4837,11 +4956,20 @@ export default function App() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-3 h-3 text-slate-400" />
-                    <span className="text-xs text-slate-400">{a.time}</span>
+                    <span className="text-xs text-slate-400">{fmtTime(a.time)}</span>
                   </div>
                 </div>
                 {a.notes && <p className="text-xs text-slate-400 mt-0.5">{a.notes}</p>}
               </div>
+              {a.date >= TODAY && (
+                <button onClick={() => {
+                  setRescheduleAppt(a);
+                  setReschedDate(a.date);
+                  setReschedTime(a.time);
+                }} className="w-9 h-9 rounded-2xl bg-slate-50 hover:bg-slate-105 flex items-center justify-center flex-shrink-0 transition-colors active:scale-95">
+                  <CalendarClock className="w-4.5 h-4.5 text-slate-500" />
+                </button>
+              )}
               <button onClick={() => deleteAppointment(a.id)} className="w-9 h-9 rounded-2xl bg-rose-50 hover:bg-rose-100 flex items-center justify-center flex-shrink-0 transition-colors active:scale-95">
                 <Trash2 className="w-4.5 h-4.5 text-rose-500" />
               </button>
@@ -4856,7 +4984,7 @@ export default function App() {
         <Sheet show={showAddAppt} onClose={() => setShowAddAppt(false)} title={t("addAppointment")}>
           <SInput label={t("doctorName")} value={newAppt.doctor} onChange={v => setNewAppt(p => ({ ...p, doctor: v }))} placeholder="Dr. Name" />
           <SInput label={t("specialty")} value={newAppt.specialty} onChange={v => setNewAppt(p => ({ ...p, specialty: v }))} placeholder="e.g. Cardiologist" />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
             <SInput label={t("date")} value={newAppt.date} onChange={v => setNewAppt(p => ({ ...p, date: v }))} type="date" min={TODAY} />
             <SInput label={t("time")} value={newAppt.time} onChange={v => setNewAppt(p => ({ ...p, time: v }))} type="time" />
           </div>
@@ -6215,15 +6343,137 @@ The above content shows the entire, complete file contents of the requested file
   /* ═══════════════════════════════════════════════════════════
      ROOT RENDER
   ═══════════════════════════════════════════════════════════ */
+  const isCapacitorOrMobile = typeof window !== "undefined" && (
+    (window as any).Capacitor !== undefined ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  );
+
+  const wrapperStyle = isCapacitorOrMobile ? {
+    fontFamily: "'Nunito',sans-serif",
+    width: "100%",
+    height: "100vh",
+    margin: 0,
+    padding: 0
+  } : {
+    fontFamily: "'Nunito',sans-serif",
+    background: "linear-gradient(135deg,#e0f7fa 0%,#f0fdf4 50%,#eff6ff 100%)",
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "12px"
+  };
+
+  const wrapperClass = isCapacitorOrMobile ? "" : "min-h-screen flex items-center justify-center p-3";
+
+  const containerStyle = isCapacitorOrMobile ? {
+    width: "100%",
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column" as const,
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    background: "#f8fafc"
+  } : {
+    width: "100%",
+    maxWidth: "390px",
+    height: "820px",
+    display: "flex",
+    flexDirection: "column" as const,
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    borderRadius: "44px",
+    boxShadow: "0 40px 80px rgba(20,184,166,.12), 0 0 0 1px rgba(255,255,255,.7)",
+    background: "#f8fafc"
+  };
+
+  const containerClass = isCapacitorOrMobile ? "w-full h-full flex flex-col relative overflow-hidden" : "w-full max-w-[390px] flex flex-col relative overflow-hidden";
+
+  const splashContainerStyle = isCapacitorOrMobile ? {
+    width: "100%",
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    background: "linear-gradient(135deg,#14B8A6 0%,#0ea5a0 55%,#0891b2 100%)"
+  } : {
+    width: "100%",
+    maxWidth: "390px",
+    height: "820px",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    borderRadius: "44px",
+    boxShadow: "0 40px 80px rgba(20,184,166,.12), 0 0 0 1px rgba(255,255,255,.7)",
+    background: "linear-gradient(135deg,#14B8A6 0%,#0ea5a0 55%,#0891b2 100%)"
+  };
+
+  const splashContainerClass = isCapacitorOrMobile ? "w-full h-full flex flex-col items-center justify-center relative overflow-hidden" : "w-full max-w-[390px] flex flex-col items-center justify-center relative overflow-hidden";
+
+  const loadingContainerStyle = isCapacitorOrMobile ? {
+    width: "100%",
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    background: "#f8fafc"
+  } : {
+    width: "100%",
+    maxWidth: "390px",
+    height: "820px",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    borderRadius: "44px",
+    boxShadow: "0 40px 80px rgba(20,184,166,.12), 0 0 0 1px rgba(255,255,255,.7)",
+    background: "#f8fafc"
+  };
+
+  const loadingContainerClass = isCapacitorOrMobile ? "w-full h-full flex flex-col items-center justify-center relative overflow-hidden bg-[#f8fafc]" : "w-full max-w-[390px] flex flex-col items-center justify-center relative overflow-hidden bg-[#f8fafc]";
+
+  const overlayClass = isCapacitorOrMobile
+    ? "absolute inset-0 z-50 flex flex-col justify-between bg-[#f8fafc] p-6 animate-in fade-in duration-300"
+    : "absolute inset-0 z-50 flex flex-col justify-between bg-[#f8fafc] p-6 animate-in fade-in duration-300 rounded-[44px]";
+
+  const overlayStyle = isCapacitorOrMobile ? {} : { height: "820px" };
+
+  if (showSplash) {
+    return (
+      <div className={wrapperClass} style={wrapperStyle}>
+        <div className={splashContainerClass} style={splashContainerStyle}>
+          <style>{`
+            @keyframes splashFadeIn {
+              0% { opacity: 0; transform: scale(0.9); }
+              100% { opacity: 1; transform: scale(1); }
+            }
+            .animate-splash {
+              animation: splashFadeIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+          `}</style>
+          <div className="animate-splash flex flex-col items-center">
+            <NunuLogo className="h-36 w-auto mb-2" variant="white" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (checkingSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-3"
-        style={{ fontFamily: "'Nunito',sans-serif", background: "linear-gradient(135deg,#e0f7fa 0%,#f0fdf4 50%,#eff6ff 100%)" }}>
-        <div className="w-full max-w-[390px] flex flex-col items-center justify-center relative overflow-hidden bg-[#f8fafc]"
-          style={{
-            height: "820px", borderRadius: "44px",
-            boxShadow: "0 40px 80px rgba(20,184,166,.12),0 0 0 1px rgba(255,255,255,.7)"
-          }}>
+      <div className={wrapperClass} style={wrapperStyle}>
+        <div className={loadingContainerClass} style={loadingContainerStyle}>
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#14B8A6]"></div>
         </div>
       </div>
@@ -6232,13 +6482,8 @@ The above content shows the entire, complete file contents of the requested file
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-3"
-        style={{ fontFamily: "'Nunito',sans-serif", background: "linear-gradient(135deg,#e0f7fa 0%,#f0fdf4 50%,#eff6ff 100%)" }}>
-        <div className="w-full max-w-[390px] flex flex-col relative overflow-hidden bg-[#f8fafc]"
-          style={{
-            height: "820px", borderRadius: "44px",
-            boxShadow: "0 40px 80px rgba(20,184,166,.12),0 0 0 1px rgba(255,255,255,.7)"
-          }}>
+      <div className={wrapperClass} style={wrapperStyle}>
+        <div className={containerClass} style={containerStyle}>
           {toast && (
             <div className="absolute top-4 left-4 right-4 z-50 transition-all duration-300 animate-in fade-in slide-in-from-top-4">
               <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md transition-all duration-300 ${toast.type === "error"
@@ -6265,13 +6510,8 @@ The above content shows the entire, complete file contents of the requested file
 
   if (!onboarded) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-3"
-        style={{ fontFamily: "'Nunito',sans-serif", background: "linear-gradient(135deg,#e0f7fa 0%,#f0fdf4 50%,#eff6ff 100%)" }}>
-        <div className="w-full max-w-[390px] flex flex-col relative overflow-hidden bg-[#f8fafc]"
-          style={{
-            height: "820px", borderRadius: "44px",
-            boxShadow: "0 40px 80px rgba(20,184,166,.12),0 0 0 1px rgba(255,255,255,.7)"
-          }}>
+      <div className={wrapperClass} style={wrapperStyle}>
+        <div className={containerClass} style={containerStyle}>
           {toast && (
             <div className="absolute top-4 left-4 right-4 z-50 transition-all duration-300 animate-in fade-in slide-in-from-top-4">
               <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md transition-all duration-300 ${toast.type === "error"
@@ -6297,15 +6537,8 @@ The above content shows the entire, complete file contents of the requested file
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-3"
-      style={{ fontFamily: "'Nunito',sans-serif", background: "linear-gradient(135deg,#e0f7fa 0%,#f0fdf4 50%,#eff6ff 100%)" }}>
-
-      <div className="w-full max-w-[390px] flex flex-col relative overflow-hidden"
-        style={{
-          height: "820px", borderRadius: "44px",
-          boxShadow: "0 40px 80px rgba(20,184,166,.12),0 0 0 1px rgba(255,255,255,.7)",
-          background: "#f8fafc"
-        }}>
+    <div className={wrapperClass} style={wrapperStyle}>
+      <div className={containerClass} style={containerStyle}>
 
         {/* Floating Custom Premium Toast */}
         {toast && (
@@ -6385,12 +6618,12 @@ The above content shows the entire, complete file contents of the requested file
           }
 
           // Full Screen Alarm View
-          const isAlarm = active.alarmMode === true || active.alarmMode === "true";
+          const isAlarm = active.alarmMode === true || active.alarmMode === "true" || settings.notificationType === "alarm";
           const isMed = active.emoji === "💊" || active.emoji === "🧪" || active.emoji === "💉";
 
           if (isAlarm) {
             return (
-              <div className="absolute inset-0 z-50 flex flex-col justify-between bg-[#f8fafc] p-6 animate-in fade-in duration-300 rounded-[44px]" style={{ height: "820px" }}>
+              <div className={overlayClass} style={overlayStyle}>
                 {/* Background glowing rings */}
                 <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none opacity-40">
                   <div className="w-[300px] h-[300px] rounded-full border border-teal-200/50 animate-ping" style={{ animationDuration: '3s' }} />
@@ -6563,6 +6796,106 @@ The above content shows the entire, complete file contents of the requested file
             </div>
           );
         })()}
+        {activeSleepAlarm && (() => {
+          const message = activeSleepAlarm === "sleep" ? "it's time to sleep" : "its time to wakeup";
+          const title = activeSleepAlarm === "sleep" ? "Bedtime Alert" : "Wake Up Alert";
+          const emoji = activeSleepAlarm === "sleep" ? "🛌" : "🌅";
+
+          if (showSnoozeSelection) {
+            return (
+              <div className={overlayClass} style={overlayStyle}>
+                {/* Top header */}
+                <div className="relative z-10 flex flex-col items-center pt-8 text-center space-y-2">
+                  <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-full uppercase tracking-wider border border-indigo-100">
+                    ⏰ Snooze Duration
+                  </span>
+                  <p className="text-xs text-slate-400 font-bold">Select snooze interval</p>
+                </div>
+
+                {/* Center choices */}
+                <div className="relative z-10 space-y-3 px-4 py-8 flex-1 flex flex-col justify-center">
+                  {snoozeOptions.map(opt => (
+                    <button
+                      key={opt.label}
+                      onClick={() => handleSnoozeClick(opt.val)}
+                      className="w-full py-4 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 active:scale-95 transition-all text-center shadow-sm"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Cancel button */}
+                <div className="relative z-10 pb-8">
+                  <button
+                    onClick={() => setShowSnoozeSelection(false)}
+                    className="w-full py-4 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-505 font-extrabold text-base transition-all text-center"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className={overlayClass} style={overlayStyle}>
+              {/* Background glowing rings */}
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none opacity-40">
+                <div className="w-[300px] h-[300px] rounded-full border border-indigo-200/50 animate-ping" style={{ animationDuration: '3s' }} />
+                <div className="absolute w-[200px] h-[200px] rounded-full border border-indigo-200/50 animate-ping" style={{ animationDuration: '4s' }} />
+              </div>
+
+              {/* Top header */}
+              <div className="relative z-10 flex flex-col items-center pt-8 text-center space-y-2">
+                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-full uppercase tracking-wider animate-pulse border border-indigo-100">
+                  🚨 Sleep Cycle Alarm 🚨
+                </span>
+                <span className="text-xs text-slate-400 font-bold">Now</span>
+              </div>
+
+              {/* Center Content with pulsing icon */}
+              <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+                <div className="relative w-32 h-32 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-indigo-500/5 animate-ripple" style={{ animationDelay: '0s' }} />
+                  <div className="absolute inset-2 rounded-full bg-indigo-500/10 animate-ripple" style={{ animationDelay: '0.6s' }} />
+                  
+                  <div className="w-24 h-24 rounded-full bg-white border-4 border-indigo-500 flex items-center justify-center shadow-[0_4px_24px_rgba(99,102,241,0.15)] animate-heartpulse">
+                    <span className="text-4xl">{emoji}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 px-4">
+                  <h2 className="text-3xl font-black tracking-tight text-slate-800">{message}</h2>
+                  <p className="text-sm text-slate-500 font-semibold">{title}</p>
+                </div>
+              </div>
+
+              {/* Dismiss & Snooze Buttons */}
+              <div className="relative z-10 space-y-3 pb-8">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setActiveSleepAlarm(null);
+                      showToast("Alarm dismissed", "success");
+                    }}
+                    className="py-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 text-indigo-750 font-extrabold text-base transition-all text-center flex items-center justify-center"
+                  >
+                    Dismiss
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSnoozeSelection(true);
+                    }}
+                    className="py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-extrabold text-base transition-all shadow-[0_4px_20px_rgba(99,102,241,0.25)] text-center flex items-center justify-center"
+                  >
+                    Snooze
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
         {/* ── Sub-pages ─────────────────────────────────────── */}
         {view === "profile" && (
           <>{SubHeader({ title: t("myProfile"), onBack: () => setView("main") })}{ProfileView()}</>
@@ -6577,7 +6910,7 @@ The above content shows the entire, complete file contents of the requested file
           <>{SubHeader({ title: t("doctorAppointments"), onBack: () => setView("profile") })}{DoctorView()}</>
         )}
         {view === "pillbox" && (
-          <>{SubHeader({ title: "Pill Box Stock Manager", onBack: () => setView("main") })}{PillBoxView()}</>
+          <>{SubHeader({ title: "Medicine Box Stock Manager", onBack: () => setView("main") })}{PillBoxView()}</>
         )}
 
         {/* ── Main view ─────────────────────────────────────── */}
@@ -6593,11 +6926,11 @@ The above content shows the entire, complete file contents of the requested file
             {activeNav === "today" && (
               <div className="absolute bottom-20 right-4 flex flex-col items-end gap-3 z-20">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-extrabold px-3 py-1.5 rounded-full bg-white text-violet-600 shadow-md"
-                    style={{ boxShadow: "0 4px 12px rgba(124,58,237,.2)" }}>{t("askAI")}</span>
-                  <button onClick={() => setShowAI(true)}
+                  <span className="text-xs font-extrabold px-3 py-1.5 rounded-full bg-white text-emerald-600 shadow-md"
+                    style={{ boxShadow: "0 4px 12px rgba(16,185,129,.2)" }}>{t("askAI")}</span>
+                  <button onClick={() => setIsAiOpen(true)}
                     className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-90 hover:scale-105"
-                    style={{ background: "linear-gradient(135deg,#7c3aed,#6366f1)", boxShadow: "0 8px 24px rgba(124,58,237,.4)" }}>
+                    style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 8px 24px rgba(16,185,129,.4)" }}>
                     <Bot className="w-6 h-6 text-white" />
                   </button>
                 </div>
@@ -6620,6 +6953,7 @@ The above content shows the entire, complete file contents of the requested file
         {/* ── Global overlays ───────────────────────────────── */}
         {NotifSheet()}
         {AISheet()}
+        <GeminiChatModal isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} language={settings.language} />
         {WizardSheet()}
         {SleepSheet()}
         {BPSheet()}
@@ -6721,6 +7055,120 @@ The above content shows the entire, complete file contents of the requested file
             </div>
           </div>
         )}
+
+        {/* Reschedule Appointment Overlay */}
+        {rescheduleAppt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" style={{ background: "rgba(15,23,42,.5)", backdropFilter: "blur(4px)" }}
+            onClick={e => e.target === e.currentTarget && setRescheduleAppt(null)}>
+            <div className="w-full max-w-[390px] bg-white rounded-[32px] p-6 space-y-4 shadow-2xl relative animate-in zoom-in-95 duration-200">
+              <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+                <CalendarClock className="w-5 h-5 text-[#0ea5e9]" /> Reschedule Appointment
+              </h3>
+              <p className="text-xs text-slate-500 font-bold -mt-2">Rescheduling: <span className="text-[#0ea5e9]">{rescheduleAppt.doctor}</span></p>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">New Date</p>
+                  <input type="date" className="w-full px-4 py-3 rounded-2xl text-sm font-semibold outline-none border"
+                    style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}
+                    value={reschedDate} onChange={e => setReschedDate(e.target.value)} min={TODAY} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">New Time</p>
+                  <input type="time" className="w-full px-4 py-3 rounded-2xl text-sm font-semibold outline-none border"
+                    style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}
+                    value={reschedTime} onChange={e => setReschedTime(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={() => setRescheduleAppt(null)} className="flex-1 py-3 rounded-2xl text-sm font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200">
+                  Cancel
+                </button>
+                <button onClick={async () => {
+                  try {
+                    const now = new Date();
+                    const currentHours = now.getHours();
+                    const currentMinutes = now.getMinutes();
+                    const currentTimeStr = `${String(currentHours).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}`;
+
+                    if (reschedDate < TODAY) {
+                      showToast("Cannot reschedule to a past date.", "error");
+                      return;
+                    }
+                    if (reschedDate === TODAY && reschedTime <= currentTimeStr) {
+                      showToast("Cannot reschedule to a past time today.", "error");
+                      return;
+                    }
+
+                    // Update appointments local state
+                    setAppointments(prev => prev.map(a => a.id === rescheduleAppt.id ? { ...a, date: reschedDate, time: reschedTime } : a));
+
+                    // Update Supabase
+                    const { error } = await supabase.from("appointments").update({
+                      date: reschedDate,
+                      time: reschedTime
+                    }).eq("id", rescheduleAppt.id);
+
+                    if (error) {
+                      console.error("Error rescheduling appointment:", error);
+                    }
+                  } catch (err) {
+                    console.error("Error rescheduling appointment:", err);
+                  } finally {
+                    setRescheduleAppt(null);
+                  }
+                }} className="flex-1 py-3 rounded-2xl text-sm font-extrabold text-white"
+                  style={{ background: "linear-gradient(135deg,#0ea5e9,#0891b2)" }}>
+                  Save Time
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Live Doctor Appointment Notification Popover Banner */}
+        {activeApptNotification && (() => {
+          const appt = activeApptNotification;
+          return (
+            <div className="absolute top-4 left-4 right-4 z-50 transition-all duration-350 animate-in fade-in slide-in-from-top-6">
+              <div className="bg-white rounded-3xl p-5 shadow-2xl border border-slate-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-lg bg-sky-500 flex items-center justify-center">
+                      <Stethoscope className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-[10px] font-extrabold tracking-wider text-sky-600 uppercase">Doctor Appointment</span>
+                  </div>
+                  <span className="text-[9px] font-bold text-slate-400">Now</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+                    🩺 {appt.doctor}
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5">{appt.specialty}</p>
+                  {appt.notes && <p className="text-[10px] text-slate-400 mt-1 italic">{appt.notes}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button onClick={() => {
+                    setActiveApptNotification(null);
+                    showToast("Appointment alert dismissed", "success");
+                  }} className="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-650 font-extrabold text-xs transition-all text-center">
+                    Dismiss
+                  </button>
+                  <button onClick={() => {
+                    setRescheduleAppt(appt);
+                    setReschedDate(appt.date);
+                    setReschedTime(appt.time);
+                    setActiveApptNotification(null);
+                  }} className="py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 active:scale-95 text-white font-extrabold text-xs transition-all text-center">
+                    Reschedule
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Custom Delete Confirmation Overlay */}
         {deletingRem && (
